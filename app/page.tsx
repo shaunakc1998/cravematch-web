@@ -4,11 +4,16 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import GroupLobby from "./components/GroupLobby";
+import SwipeDeck from "./components/SwipeDeck";
+import MatchesList from "./components/MatchesList";
+import BottomNavBar from "./components/BottomNavBar";
 import { AppProvider } from "./context/AppContext";
 import { useAuth } from "./context/AuthContext";
+import { useApp } from "./context/AppContext";
 
 function AppContent() {
   const { user, loading, signOut } = useAuth();
+  const { activeTab, groupSession } = useApp();
   const router = useRouter();
 
   useEffect(() => {
@@ -203,8 +208,20 @@ function AppContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <GroupLobby />
+          {/* Show GroupLobby if in a group session, otherwise show tab content */}
+          {groupSession?.isActive ? (
+            <GroupLobby />
+          ) : (
+            <>
+              {activeTab === "discover" && <SwipeDeck />}
+              {activeTab === "matches" && <MatchesList />}
+              {activeTab === "group" && <GroupLobby />}
+            </>
+          )}
         </motion.div>
+
+        {/* Bottom Navigation */}
+        {!groupSession?.isActive && <BottomNavBar />}
       </motion.main>
     </div>
   );
