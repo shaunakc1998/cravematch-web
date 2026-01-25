@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Loader2, Utensils, Sparkles, Users, Heart } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -48,7 +48,9 @@ export default function AuthPage() {
         if (error) {
           setError(error.message);
         } else {
-          setSuccess("Check your email to confirm your account!");
+          setSuccess("Account created! You can now sign in.");
+          setIsLogin(true);
+          setPassword("");
         }
       }
     } catch {
@@ -77,13 +79,13 @@ export default function AuthPage() {
         >
           {/* Logo */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center glow-primary">
-              <Utensils className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center text-3xl">
+              🍽️
             </div>
             <div>
               <h1 className="text-4xl font-bold">
                 <span className="text-white">Crave</span>
-                <span className="gradient-text">Match</span>
+                <span className="text-[#ff4d6d]">Match</span>
               </h1>
             </div>
           </div>
@@ -91,7 +93,7 @@ export default function AuthPage() {
           {/* Tagline */}
           <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4 leading-tight">
             Find your next meal,<br />
-            <span className="gradient-text">together.</span>
+            <span className="text-[#ff4d6d]">together.</span>
           </h2>
           <p className="text-[#6b7280] text-lg mb-12 leading-relaxed">
             Swipe through restaurants, match with friends, and discover the perfect place to eat. No more &quot;I don&apos;t know, what do you want?&quot;
@@ -105,8 +107,8 @@ export default function AuthPage() {
               transition={{ delay: 0.3 }}
               className="flex items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-[#ff4d6d]" />
+              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
+                ✨
               </div>
               <div>
                 <h3 className="text-white font-semibold">Swipe to Discover</h3>
@@ -120,8 +122,8 @@ export default function AuthPage() {
               transition={{ delay: 0.4 }}
               className="flex items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <Users className="w-6 h-6 text-[#10b981]" />
+              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
+                👥
               </div>
               <div>
                 <h3 className="text-white font-semibold">Group Sessions</h3>
@@ -135,8 +137,8 @@ export default function AuthPage() {
               transition={{ delay: 0.5 }}
               className="flex items-center gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <Heart className="w-6 h-6 text-[#f59e0b]" />
+              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
+                ❤️
               </div>
               <div>
                 <h3 className="text-white font-semibold">Instant Matches</h3>
@@ -156,8 +158,8 @@ export default function AuthPage() {
           className="mb-8 text-center lg:hidden"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center glow-primary">
-              <Utensils className="w-6 h-6 text-white" />
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center text-2xl">
+              🍽️
             </div>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -221,54 +223,56 @@ export default function AuthPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <div className="relative flex items-center">
-                  <User className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
-                  <input
-                    type="text"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-[#6b7280] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
-                  />
-                </div>
+                <label className="block text-[#6b7280] text-sm font-medium mb-2">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
+                />
               </motion.div>
             )}
 
             {/* Email Field */}
-            <div className="relative flex items-center">
-              <Mail className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
+            <div>
+              <label className="block text-[#6b7280] text-sm font-medium mb-2">
+                Email Address
+              </label>
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-[#6b7280] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
+                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
               />
             </div>
 
             {/* Password Field */}
-            <div className="relative flex items-center">
-              <Lock className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl pl-12 pr-12 py-4 text-white placeholder:text-[#6b7280] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
+            <div>
+              <label className="block text-[#6b7280] text-sm font-medium mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 pr-12 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white transition-colors text-sm font-medium"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             {/* Error Message */}
@@ -297,7 +301,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-bold text-lg rounded-xl disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#ff4d6d]/30 hover:shadow-xl hover:shadow-[#ff4d6d]/40"
+              className="w-full py-4 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-bold text-lg rounded-xl disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#ff4d6d]/30 hover:shadow-xl hover:shadow-[#ff4d6d]/40 mt-6"
             >
               {loading ? (
                 <>
