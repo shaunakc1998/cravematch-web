@@ -274,6 +274,8 @@ export function subscribeToRoom(
 ): RealtimeChannel {
   const supabase = createClient();
 
+  console.log("Subscribing to room:", roomId);
+
   const channel = supabase
     .channel(`room:${roomId}`)
     .on(
@@ -285,6 +287,7 @@ export function subscribeToRoom(
         filter: `room_id=eq.${roomId}`,
       },
       async () => {
+        console.log("Participant change detected");
         const participants = await getRoomParticipants(roomId);
         onParticipantChange(participants);
       }
@@ -298,6 +301,7 @@ export function subscribeToRoom(
         filter: `id=eq.${roomId}`,
       },
       (payload) => {
+        console.log("Room update detected:", payload.new);
         onRoomChange(payload.new as Room);
       }
     )
@@ -310,10 +314,13 @@ export function subscribeToRoom(
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
+        console.log("Match detected:", payload.new);
         onMatch(payload.new as Match);
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Subscription status:", status);
+    });
 
   return channel;
 }

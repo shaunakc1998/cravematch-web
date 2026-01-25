@@ -195,6 +195,43 @@ export default function GroupLobby() {
     return () => clearInterval(interval);
   }, [currentRoom, sessionState, participants]);
 
+  // Poll room status as fallback for real-time
+  useEffect(() => {
+    if (!currentRoom) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { createClient } = await import("../lib/supabase");
+        const supabase = createClient();
+        const { data: updatedRoom, error } = await supabase
+          .from("rooms")
+          .select()
+          .eq("id", currentRoom.id)
+          .single();
+
+        if (error) {
+          console.error("Error polling room status:", error);
+          return;
+        }
+
+        if (updatedRoom && updatedRoom.status !== currentRoom.status) {
+          console.log("Room status updated from polling:", updatedRoom.status);
+          setCurrentRoom(updatedRoom);
+          
+          // Transition to swiping if room became active
+          if (updatedRoom.status === "active" && sessionState === "waiting") {
+            console.log("Transitioning to swiping state");
+            setSessionState("swiping");
+          }
+        }
+      } catch (err) {
+        console.error("Error polling room status:", err);
+      }
+    }, 1000); // Poll every 1 second for faster updates
+
+    return () => clearInterval(interval);
+  }, [currentRoom, sessionState]);
+
   // Start swiping (host only)
   const startSwiping = async () => {
     if (participants.length < 2) {
