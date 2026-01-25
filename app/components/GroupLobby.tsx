@@ -98,18 +98,8 @@ export default function GroupLobby() {
     setError("");
   };
 
-  // Simulate someone joining
-  useEffect(() => {
-    if (sessionState === "waiting" && participants.length === 1) {
-      const timer = setTimeout(() => {
-        setParticipants((prev) => [
-          ...prev,
-          { id: "friend", name: "Friend", isReady: true },
-        ]);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [sessionState, participants.length]);
+  // Note: Real-time sync would be handled by Supabase Realtime in production
+  // This is a demo mode - participants are managed locally
 
   // IDLE STATE
   if (sessionState === "idle") {
@@ -397,9 +387,9 @@ export default function GroupLobby() {
     const restaurant = restaurants[currentIndex];
     
     return (
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full min-h-0">
         {/* Progress Bar */}
-        <div className="px-5 py-3 flex items-center justify-between">
+        <div className="flex-shrink-0 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-[#52525b] text-sm font-medium">
               {currentIndex + 1} / {restaurants.length}
@@ -426,9 +416,9 @@ export default function GroupLobby() {
         </div>
 
         {/* Card */}
-        <div className="flex-1 px-4 pb-2">
+        <div className="flex-1 px-4 pb-2 min-h-[300px] sm:min-h-[400px]">
           <motion.div 
-            className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl"
+            className="relative w-full h-full min-h-[280px] sm:min-h-[380px] rounded-3xl overflow-hidden shadow-2xl"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             key={currentIndex}

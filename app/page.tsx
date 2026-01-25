@@ -80,7 +80,7 @@ function AppContent() {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <div className="h-full w-full bg-[#050505] overflow-hidden">
+    <div className="h-screen w-full bg-[#050505] overflow-hidden flex flex-col">
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Primary gradient orb */}
@@ -197,7 +197,7 @@ function AppContent() {
 
         {/* Main Content */}
         <motion.div 
-          className="flex-1 overflow-hidden"
+          className="flex-1 overflow-hidden min-h-0 flex flex-col"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
