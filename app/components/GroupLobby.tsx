@@ -608,7 +608,10 @@ export default function GroupLobby() {
             </motion.button>
             
             <motion.button
-              onClick={() => setSessionState("swiping")}
+              onClick={() => {
+                setSessionState("swiping");
+                setMatchedRestaurant(null);
+              }}
               className="w-full py-4 bg-[#111] border border-[rgba(255,255,255,0.08)] text-[#a1a1aa] font-semibold rounded-2xl hover:bg-[rgba(255,255,255,0.05)] hover:text-white hover:border-[rgba(255,255,255,0.12)] transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
