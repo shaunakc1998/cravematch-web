@@ -1,17 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import SwipeDeck from "./components/SwipeDeck";
-import BottomNavBar from "./components/BottomNavBar";
-import MatchesList from "./components/MatchesList";
 import GroupLobby from "./components/GroupLobby";
-import { AppProvider, useApp } from "./context/AppContext";
+import { AppProvider } from "./context/AppContext";
 import { useAuth } from "./context/AuthContext";
 
 function AppContent() {
-  const { activeTab } = useApp();
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
@@ -46,22 +42,21 @@ function AppContent() {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <div className="h-full w-full flex items-center justify-center bg-[#0a0a0a]">
+    <div className="h-full w-full bg-[#0a0a0a]">
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#ff4d6d]/3 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#ff6b8a]/3 rounded-full blur-[150px]" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#ff4d6d]/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#ff6b8a]/5 rounded-full blur-[150px]" />
       </div>
 
-      {/* Main App Container */}
+      {/* Main App */}
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="app-container flex flex-col bg-[#0a0a0a] relative overflow-hidden"
+        className="relative h-full flex flex-col max-w-lg mx-auto"
       >
         {/* Header */}
-        <header className="flex items-center justify-between px-4 py-3 safe-area-top border-b border-[#141414]">
-          {/* Logo */}
+        <header className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center">
               <span className="text-sm">🍽️</span>
@@ -72,68 +67,23 @@ function AppContent() {
             </h1>
           </div>
 
-          {/* User Menu */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#141414] border border-[#1f1f1f] hover:border-[#2a2a2a] transition-all"
-            >
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center">
-                <span className="text-white text-xs font-semibold">{userInitial}</span>
-              </div>
-              <span className="text-[#8b8b8b] text-sm font-medium hidden sm:block">
-                {userName}
-              </span>
-            </button>
-          </div>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#252525] hover:border-[#333] transition-all"
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center">
+              <span className="text-white text-xs font-semibold">{userInitial}</span>
+            </div>
+            <span className="text-[#888] text-sm font-medium hidden sm:block">
+              {userName}
+            </span>
+          </button>
         </header>
 
-        {/* Tab Content */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <AnimatePresence mode="wait">
-            {activeTab === "discover" && (
-              <motion.div
-                key="discover"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="flex-1 flex flex-col min-h-0"
-              >
-                <SwipeDeck />
-              </motion.div>
-            )}
-
-            {activeTab === "matches" && (
-              <motion.div
-                key="matches"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="flex-1 flex flex-col min-h-0 overflow-hidden"
-              >
-                <MatchesList />
-              </motion.div>
-            )}
-
-            {activeTab === "group" && (
-              <motion.div
-                key="group"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="flex-1 flex flex-col min-h-0 overflow-hidden"
-              >
-                <GroupLobby />
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Main Content - Group Lobby Only */}
+        <div className="flex-1 overflow-hidden">
+          <GroupLobby />
         </div>
-
-        {/* Bottom Navigation */}
-        <BottomNavBar />
       </motion.main>
     </div>
   );
