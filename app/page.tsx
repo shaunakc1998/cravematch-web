@@ -135,7 +135,8 @@ function AppContent() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative h-full flex flex-col max-w-lg mx-auto"
+        className="relative flex-1 flex flex-col max-w-lg mx-auto w-full"
+        style={{ minHeight: 0 }}
       >
         {/* Premium Header */}
         <header className="relative z-10 flex items-center justify-between px-5 py-4 safe-area-top">

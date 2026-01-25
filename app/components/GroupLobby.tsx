@@ -387,7 +387,7 @@ export default function GroupLobby() {
     const restaurant = restaurants[currentIndex];
     
     return (
-      <div className="flex-1 flex flex-col h-full min-h-0">
+      <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
         {/* Progress Bar */}
         <div className="flex-shrink-0 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -415,10 +415,11 @@ export default function GroupLobby() {
           </div>
         </div>
 
-        {/* Card */}
-        <div className="flex-1 px-4 pb-2 min-h-[300px] sm:min-h-[400px]">
+        {/* Card - Using aspect ratio for consistent sizing */}
+        <div className="flex-1 px-4 pb-2 flex flex-col" style={{ minHeight: 0 }}>
           <motion.div 
-            className="relative w-full h-full min-h-[280px] sm:min-h-[380px] rounded-3xl overflow-hidden shadow-2xl"
+            className="relative w-full flex-1 rounded-3xl overflow-hidden shadow-2xl"
+            style={{ minHeight: "350px" }}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             key={currentIndex}
