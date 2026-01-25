@@ -9,6 +9,7 @@ import {
   joinRoom, 
   subscribeToRoom, 
   unsubscribeFromRoom, 
+  startSession,
   Room as SupabaseRoom, 
   Participant as SupabaseParticipant,
   Match as SupabaseMatch
@@ -151,13 +152,38 @@ export default function GroupLobby() {
   }, [currentRoom, setupRoomSubscription]);
 
   // Start swiping
-  const startSwiping = () => {
+  const startSwiping = async () => {
     if (participants.length < 2) {
       setError("Need at least 2 people to start!");
       return;
     }
-    setSessionState("swiping");
-    setCurrentIndex(0);
+
+    if (!currentRoom || !user) {
+      setError("Room or user not found");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Call startSession to update database
+      const { success, error: startError } = await startSession(currentRoom.id, user.id);
+      
+      if (!success || startError) {
+        setError(startError || "Failed to start session");
+        setIsLoading(false);
+        return;
+      }
+
+      // Update local state
+      setSessionState("swiping");
+      setCurrentIndex(0);
+      setError("");
+    } catch (err) {
+      setError("Failed to start swiping session");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle swipe
