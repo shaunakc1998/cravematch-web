@@ -114,6 +114,7 @@ export default function GroupLobby() {
       currentRoom.id,
       // Participant change callback
       (updatedParticipants: SupabaseParticipant[]) => {
+        console.log("Participants updated:", updatedParticipants);
         const formattedParticipants = updatedParticipants.map(p => ({
           id: p.user_id,
           name: p.name,
@@ -123,6 +124,7 @@ export default function GroupLobby() {
       },
       // Room change callback
       (updatedRoom: SupabaseRoom) => {
+        console.log("Room updated:", updatedRoom);
         setCurrentRoom(updatedRoom);
         if (updatedRoom.status === "active") {
           setSessionState("swiping");
@@ -149,9 +151,9 @@ export default function GroupLobby() {
         unsubscribeFromRoom(roomSubscription);
       }
     };
-  }, [currentRoom, setupRoomSubscription]);
+  }, [currentRoom, setupRoomSubscription, roomSubscription]);
 
-  // Start swiping
+  // Start swiping (host only)
   const startSwiping = async () => {
     if (participants.length < 2) {
       setError("Need at least 2 people to start!");
@@ -160,6 +162,12 @@ export default function GroupLobby() {
 
     if (!currentRoom || !user) {
       setError("Room or user not found");
+      return;
+    }
+
+    // Only host can start
+    if (currentRoom.host_id !== user.id) {
+      setError("Only the host can start the session");
       return;
     }
 
@@ -489,15 +497,15 @@ export default function GroupLobby() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-8 py-6 px-4 safe-area-bottom">
+        <div className="flex items-center justify-center gap-4 sm:gap-8 py-6 px-4 safe-area-bottom">
           <motion.button
             onClick={() => handleSwipe("left")}
-            className="relative w-16 h-16 rounded-full bg-[#111] border-2 border-[rgba(255,255,255,0.08)] flex items-center justify-center group shadow-lg"
+            className="relative w-20 h-20 sm:w-16 sm:h-16 rounded-full bg-[#111] border-2 border-[rgba(255,255,255,0.08)] flex items-center justify-center group shadow-lg"
             whileHover={{ scale: 1.1, borderColor: "rgba(244, 63, 94, 0.5)" }}
             whileTap={{ scale: 0.9 }}
           >
             <motion.span 
-              className="text-3xl"
+              className="text-4xl sm:text-3xl"
               whileHover={{ scale: 1.2, rotate: 90 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
@@ -507,12 +515,12 @@ export default function GroupLobby() {
           
           <motion.button
             onClick={() => handleSwipe("right")}
-            className="relative w-20 h-20 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl shadow-[#f43f5e]/30 group"
+            className="relative w-24 h-24 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl shadow-[#f43f5e]/30 group"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <motion.span 
-              className="text-4xl"
+              className="text-5xl sm:text-4xl"
               whileHover={{ scale: 1.2 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
