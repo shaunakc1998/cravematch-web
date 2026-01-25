@@ -208,20 +208,13 @@ function AppContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          {/* Show GroupLobby if in a group session, otherwise show tab content */}
-          {groupSession?.isActive ? (
-            <GroupLobby />
-          ) : (
-            <>
-              {activeTab === "discover" && <SwipeDeck />}
-              {activeTab === "matches" && <MatchesList />}
-              {activeTab === "group" && <GroupLobby />}
-            </>
-          )}
+          {activeTab === "discover" && <SwipeDeck />}
+          {activeTab === "matches" && <MatchesList />}
+          {activeTab === "group" && <GroupLobby />}
         </motion.div>
 
         {/* Bottom Navigation */}
-        {!groupSession?.isActive && <BottomNavBar />}
+        <BottomNavBar />
       </motion.main>
     </div>
   );
