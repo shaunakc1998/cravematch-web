@@ -300,17 +300,8 @@ export default function GroupLobby() {
       console.error("Error recording swipe:", err);
     }
 
-    // For now, show match on right swipe (30% chance for testing)
-    // TODO: Replace with actual consensus logic when multiple users swipe
-    if (direction === "right") {
-      if (Math.random() > 0.7) {
-        setMatchedRestaurant(restaurant);
-        setSessionState("matched");
-        return;
-      }
-    }
-
-    // Move to next restaurant
+    // Move to next restaurant (no random match logic)
+    // Matches will be determined by consensus logic in database
     if (currentIndex < restaurants.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
