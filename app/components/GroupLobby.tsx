@@ -10,6 +10,7 @@ import {
   subscribeToRoom, 
   unsubscribeFromRoom, 
   startSession,
+  recordSwipe,
   Room as SupabaseRoom, 
   Participant as SupabaseParticipant,
   Match as SupabaseMatch
@@ -97,6 +98,16 @@ export default function GroupLobby() {
         setRoomCode(room.code);
         setSessionState("waiting");
         setError("");
+        
+        // Fetch existing participants immediately
+        const { getRoomParticipants } = await import("../lib/roomService");
+        const existingParticipants = await getRoomParticipants(room.id);
+        const formattedParticipants = existingParticipants.map(p => ({
+          id: p.user_id,
+          name: p.name,
+          isReady: p.is_ready
+        }));
+        setParticipants(formattedParticipants);
       }
     } catch (err) {
       setError("Failed to join room. Please try again.");
@@ -195,9 +206,35 @@ export default function GroupLobby() {
   };
 
   // Handle swipe
-  const handleSwipe = (direction: "left" | "right") => {
+  const handleSwipe = async (direction: "left" | "right") => {
+    if (!currentRoom || !user) {
+      setError("Room or user not found");
+      return;
+    }
+
+    const restaurant = restaurants[currentIndex];
+    
+    // Record swipe to database
+    try {
+      const { success, error: swipeError } = await recordSwipe(
+        currentRoom.id,
+        user.id,
+        restaurant.id,
+        direction
+      );
+
+      if (!success || swipeError) {
+        console.error("Failed to record swipe:", swipeError);
+      } else {
+        console.log(`Swipe recorded: ${direction} on ${restaurant.name}`);
+      }
+    } catch (err) {
+      console.error("Error recording swipe:", err);
+    }
+
+    // For now, show match on right swipe (30% chance for testing)
+    // TODO: Replace with actual consensus logic when multiple users swipe
     if (direction === "right") {
-      const restaurant = restaurants[currentIndex];
       if (Math.random() > 0.7) {
         setMatchedRestaurant(restaurant);
         setSessionState("matched");
@@ -205,6 +242,7 @@ export default function GroupLobby() {
       }
     }
 
+    // Move to next restaurant
     if (currentIndex < restaurants.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {

@@ -105,45 +105,60 @@ export async function joinRoom(
 ): Promise<{ room: Room | null; error: string | null }> {
   const supabase = createClient();
 
-  // Find room by code
-  const { data: room, error: roomError } = await supabase
-    .from("rooms")
-    .select()
-    .eq("code", code.toUpperCase())
-    .eq("status", "waiting")
-    .single();
+  try {
+    // Find room by code
+    const { data: room, error: roomError } = await supabase
+      .from("rooms")
+      .select()
+      .eq("code", code.toUpperCase())
+      .eq("status", "waiting")
+      .single();
 
-  if (roomError || !room) {
-    return { room: null, error: "Room not found or session already started" };
-  }
+    if (roomError) {
+      console.error("Room lookup error:", roomError);
+      return { room: null, error: "Room not found or session already started" };
+    }
 
-  // Check if already in room
-  const { data: existing } = await supabase
-    .from("room_participants")
-    .select()
-    .eq("room_id", room.id)
-    .eq("user_id", userId)
-    .single();
+    if (!room) {
+      return { room: null, error: "Room not found" };
+    }
 
-  if (existing) {
+    console.log("Found room:", room);
+
+    // Check if already in room
+    const { data: existing, error: existingError } = await supabase
+      .from("room_participants")
+      .select()
+      .eq("room_id", room.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing) {
+      console.log("User already in room");
+      return { room: room as Room, error: null };
+    }
+
+    // Join room
+    const { error: joinError } = await supabase
+      .from("room_participants")
+      .insert({
+        room_id: room.id,
+        user_id: userId,
+        name: userName,
+        is_ready: true,
+      });
+
+    if (joinError) {
+      console.error("Join error:", joinError);
+      return { room: null, error: joinError.message };
+    }
+
+    console.log("Successfully joined room");
     return { room: room as Room, error: null };
+  } catch (err) {
+    console.error("Join room exception:", err);
+    return { room: null, error: "Failed to join room" };
   }
-
-  // Join room
-  const { error: joinError } = await supabase
-    .from("room_participants")
-    .insert({
-      room_id: room.id,
-      user_id: userId,
-      name: userName,
-      is_ready: true,
-    });
-
-  if (joinError) {
-    return { room: null, error: joinError.message };
-  }
-
-  return { room: room as Room, error: null };
 }
 
 // Get room participants
