@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -13,94 +13,132 @@ import {
   Loader2,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import {
+  createRoom,
+  joinRoom,
+  getRoomParticipants,
+  startSession,
+  leaveRoom,
+  deleteRoom,
+  subscribeToRoom,
+  unsubscribeFromRoom,
+  Room,
+  Participant,
+} from "../lib/roomService";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
-type LobbyState = "entry" | "hosting" | "joining" | "waiting";
-
-interface Participant {
-  id: string;
-  name: string;
-  avatar: string;
-  isHost: boolean;
-}
+type LobbyState = "entry" | "hosting" | "waiting";
 
 export default function GroupLobby() {
   const { startGroupSession } = useApp();
+  const { user } = useAuth();
   const [lobbyState, setLobbyState] = useState<LobbyState>("entry");
-  const [roomCode, setRoomCode] = useState("");
+  const [room, setRoom] = useState<Room | null>(null);
   const [joinCode, setJoinCode] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [isReady, setIsReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
-  // Generate a random 4-character room code
-  const generateRoomCode = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  };
+  const userName = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const isHost = room?.host_id === user?.id;
+  const isReady = participants.length >= 2;
+
+  // Subscribe to room updates
+  const setupSubscription = useCallback((roomId: string) => {
+    const newChannel = subscribeToRoom(
+      roomId,
+      (newParticipants) => {
+        setParticipants(newParticipants);
+      },
+      (updatedRoom) => {
+        setRoom(updatedRoom);
+        // If room status changed to active, start the session
+        if (updatedRoom.status === "active") {
+          const participantNames = participants
+            .filter((p) => p.user_id !== user?.id)
+            .map((p) => p.name);
+          startGroupSession({
+            isActive: true,
+            roomCode: updatedRoom.code,
+            participants: participants.map((p) => ({
+              id: p.user_id,
+              name: p.name,
+              avatar: "🍕",
+              isHost: p.user_id === updatedRoom.host_id,
+            })),
+          });
+        }
+      },
+      (match) => {
+        console.log("New match!", match);
+      }
+    );
+    setChannel(newChannel);
+  }, [participants, user?.id, startGroupSession]);
+
+  // Cleanup subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (channel) {
+        unsubscribeFromRoom(channel);
+      }
+    };
+  }, [channel]);
 
   // Handle hosting a session
-  const handleHost = () => {
-    const code = generateRoomCode();
-    setRoomCode(code);
-    setParticipants([
-      {
-        id: "1",
-        name: "You",
-        avatar: "🍕",
-        isHost: true,
-      },
-    ]);
+  const handleHost = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError("");
+
+    const { room: newRoom, error: roomError } = await createRoom(user.id, userName);
+
+    if (roomError || !newRoom) {
+      setError(roomError || "Failed to create room");
+      setLoading(false);
+      return;
+    }
+
+    setRoom(newRoom);
+    const initialParticipants = await getRoomParticipants(newRoom.id);
+    setParticipants(initialParticipants);
+    setupSubscription(newRoom.id);
     setLobbyState("hosting");
+    setLoading(false);
   };
 
   // Handle joining a session
-  const handleJoin = () => {
-    if (joinCode.length === 4) {
-      setRoomCode(joinCode.toUpperCase());
-      setParticipants([
-        {
-          id: "1",
-          name: "Host",
-          avatar: "🍔",
-          isHost: true,
-        },
-        {
-          id: "2",
-          name: "You",
-          avatar: "🍕",
-          isHost: false,
-        },
-      ]);
-      setLobbyState("waiting");
+  const handleJoin = async () => {
+    if (!user || joinCode.length !== 4) return;
+    setLoading(true);
+    setError("");
+
+    const { room: joinedRoom, error: joinError } = await joinRoom(
+      joinCode,
+      user.id,
+      userName
+    );
+
+    if (joinError || !joinedRoom) {
+      setError(joinError || "Failed to join room");
+      setLoading(false);
+      return;
     }
+
+    setRoom(joinedRoom);
+    const initialParticipants = await getRoomParticipants(joinedRoom.id);
+    setParticipants(initialParticipants);
+    setupSubscription(joinedRoom.id);
+    setLobbyState("waiting");
+    setLoading(false);
   };
-
-  // Simulate friend joining after 3 seconds when hosting
-  useEffect(() => {
-    if (lobbyState === "hosting") {
-      const timer = setTimeout(() => {
-        setParticipants((prev) => [
-          ...prev,
-          {
-            id: "2",
-            name: "Manasi",
-            avatar: "🍣",
-            isHost: false,
-          },
-        ]);
-        setIsReady(true);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [lobbyState]);
 
   // Handle share
   const handleShare = async () => {
-    const shareText = `Join my CraveMatch session! 🍽️\n\nRoom Code: ${roomCode}\n\nLet's find something to eat together!`;
+    if (!room) return;
+    const shareText = `Join my CraveMatch session! 🍽️\n\nRoom Code: ${room.code}\n\nLet's find something to eat together!`;
 
     if (navigator.share) {
       try {
@@ -112,27 +150,45 @@ export default function GroupLobby() {
         // User cancelled or share failed
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareText);
     }
   };
 
-  // Handle back
-  const handleBack = () => {
+  // Handle back/leave
+  const handleBack = async () => {
+    if (room && user) {
+      if (isHost) {
+        await deleteRoom(room.id, user.id);
+      } else {
+        await leaveRoom(room.id, user.id);
+      }
+    }
+    if (channel) {
+      unsubscribeFromRoom(channel);
+      setChannel(null);
+    }
     setLobbyState("entry");
-    setRoomCode("");
+    setRoom(null);
     setJoinCode("");
     setParticipants([]);
-    setIsReady(false);
+    setError("");
   };
 
   // Handle start swiping
-  const handleStartSwiping = () => {
-    startGroupSession({
-      isActive: true,
-      roomCode,
-      participants,
-    });
+  const handleStartSwiping = async () => {
+    if (!room || !user || !isHost) return;
+    setLoading(true);
+
+    const { success, error: startError } = await startSession(room.id, user.id);
+
+    if (!success) {
+      setError(startError || "Failed to start session");
+      setLoading(false);
+      return;
+    }
+
+    // The subscription will handle the state change
+    setLoading(false);
   };
 
   // Entry Screen
@@ -167,6 +223,16 @@ export default function GroupLobby() {
           time to eat!
         </motion.p>
 
+        {error && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-red-500 text-sm mb-4"
+          >
+            {error}
+          </motion.p>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,10 +242,17 @@ export default function GroupLobby() {
           {/* Host Button */}
           <button
             onClick={handleHost}
-            className="w-full py-5 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-bold text-lg rounded-2xl active:scale-95 transition-transform flex items-center justify-center gap-3 shadow-lg shadow-[#ff4d6d]/30"
+            disabled={loading}
+            className="w-full py-5 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-bold text-lg rounded-2xl active:scale-95 transition-transform flex items-center justify-center gap-3 shadow-lg shadow-[#ff4d6d]/30 disabled:opacity-50"
           >
-            <Crown className="w-6 h-6" />
-            Host a Session
+            {loading ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <>
+                <Crown className="w-6 h-6" />
+                Host a Session
+              </>
+            )}
           </button>
 
           {/* Divider */}
@@ -210,10 +283,10 @@ export default function GroupLobby() {
               />
               <button
                 onClick={handleJoin}
-                disabled={joinCode.length !== 4}
+                disabled={joinCode.length !== 4 || loading}
                 className="px-5 py-3 bg-[#10b981] text-white font-semibold rounded-xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all"
               >
-                Join
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Join"}
               </button>
             </div>
           </div>
@@ -253,7 +326,7 @@ export default function GroupLobby() {
 
         {/* Big Room Code Display */}
         <div className="flex justify-center gap-3 mb-4">
-          {roomCode.split("").map((char, index) => (
+          {room?.code.split("").map((char, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.5 }}
@@ -270,6 +343,16 @@ export default function GroupLobby() {
           Share this code with your friends
         </p>
       </motion.div>
+
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-red-500 text-sm text-center mb-4"
+        >
+          {error}
+        </motion.p>
+      )}
 
       {/* Participants List */}
       <motion.div
@@ -296,16 +379,16 @@ export default function GroupLobby() {
               >
                 {/* Avatar */}
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center text-2xl">
-                  {participant.avatar}
+                  🍕
                 </div>
 
                 {/* Name */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-white font-semibold">
-                      {participant.name}
+                      {participant.user_id === user?.id ? "You" : participant.name}
                     </span>
-                    {participant.isHost && (
+                    {participant.user_id === room?.host_id && (
                       <span className="px-2 py-0.5 bg-[#ff4d6d]/20 text-[#ff4d6d] text-xs font-medium rounded-full flex items-center gap-1">
                         <Crown className="w-3 h-3" />
                         Host
@@ -313,7 +396,7 @@ export default function GroupLobby() {
                     )}
                   </div>
                   <span className="text-[#6b7280] text-sm">
-                    {participant.name === "You" ? "Ready to swipe!" : "Joined"}
+                    {participant.user_id === user?.id ? "Ready to swipe!" : "Joined"}
                   </span>
                 </div>
 
@@ -351,7 +434,7 @@ export default function GroupLobby() {
       </motion.div>
 
       {/* Start Button (only for host when ready) */}
-      {lobbyState === "hosting" && (
+      {isHost && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: isReady ? 1 : 0.3, y: 0 }}
@@ -359,13 +442,13 @@ export default function GroupLobby() {
         >
           <button
             onClick={handleStartSwiping}
-            disabled={!isReady}
+            disabled={!isReady || loading}
             className="w-full py-5 bg-gradient-to-r from-[#10b981] to-[#059669] text-white font-bold text-lg rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all shadow-lg shadow-[#10b981]/30 flex items-center justify-center gap-3"
           >
-            {isReady ? (
-              <>
-                🚀 START SWIPING
-              </>
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isReady ? (
+              <>🚀 START SWIPING</>
             ) : (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
