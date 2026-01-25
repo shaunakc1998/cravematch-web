@@ -221,8 +221,8 @@ export default function AuthPage() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6b7280]" />
+                <div className="relative flex items-center">
+                  <User className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
                   <input
                     type="text"
                     placeholder="Your name"
@@ -235,8 +235,8 @@ export default function AuthPage() {
             )}
 
             {/* Email Field */}
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6b7280]" />
+            <div className="relative flex items-center">
+              <Mail className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
               <input
                 type="email"
                 placeholder="Email address"
@@ -248,8 +248,8 @@ export default function AuthPage() {
             </div>
 
             {/* Password Field */}
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6b7280]" />
+            <div className="relative flex items-center">
+              <Lock className="absolute left-4 w-5 h-5 text-[#6b7280] pointer-events-none z-10" />
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
