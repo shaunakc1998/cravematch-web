@@ -232,6 +232,50 @@ export default function GroupLobby() {
     return () => clearInterval(interval);
   }, [currentRoom, sessionState]);
 
+  // Poll for matches and check consensus
+  useEffect(() => {
+    if (!currentRoom || sessionState !== "swiping") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { getRoomMatches, checkConsensus, createMatch } = await import("../lib/roomService");
+        
+        // Check for existing matches
+        const matches = await getRoomMatches(currentRoom.id);
+        if (matches.length > 0) {
+          const matchedRestaurant = restaurants.find(
+            r => r.id === matches[0].restaurant_id
+          );
+          if (matchedRestaurant) {
+            console.log("Match found from polling:", matchedRestaurant.name);
+            setMatchedRestaurant(matchedRestaurant);
+            setSessionState("matched");
+            return;
+          }
+        }
+
+        // Check for consensus on current restaurant
+        const currentRestaurant = restaurants[currentIndex];
+        if (currentRestaurant) {
+          const hasConsensus = await checkConsensus(currentRoom.id, currentRestaurant.id);
+          if (hasConsensus) {
+            console.log("Consensus reached on:", currentRestaurant.name);
+            // Create match
+            const { success } = await createMatch(currentRoom.id, currentRestaurant.id);
+            if (success) {
+              setMatchedRestaurant(currentRestaurant);
+              setSessionState("matched");
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error polling matches:", err);
+      }
+    }, 1000); // Poll every 1 second for faster detection
+
+    return () => clearInterval(interval);
+  }, [currentRoom, sessionState, currentIndex]);
+
   // Start swiping (host only)
   const startSwiping = async () => {
     if (participants.length < 2) {
@@ -594,15 +638,15 @@ export default function GroupLobby() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-4 sm:gap-8 py-6 px-4 safe-area-bottom">
+        <div className="flex items-center justify-center gap-6 py-4 px-4 pb-20">
           <motion.button
             onClick={() => handleSwipe("left")}
-            className="relative w-20 h-20 sm:w-16 sm:h-16 rounded-full bg-[#111] border-2 border-[rgba(255,255,255,0.08)] flex items-center justify-center group shadow-lg"
+            className="relative w-16 h-16 rounded-full bg-[#111] border-2 border-[rgba(255,255,255,0.08)] flex items-center justify-center group shadow-lg flex-shrink-0"
             whileHover={{ scale: 1.1, borderColor: "rgba(244, 63, 94, 0.5)" }}
             whileTap={{ scale: 0.9 }}
           >
             <motion.span 
-              className="text-4xl sm:text-3xl"
+              className="text-3xl"
               whileHover={{ scale: 1.2, rotate: 90 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
@@ -612,12 +656,12 @@ export default function GroupLobby() {
           
           <motion.button
             onClick={() => handleSwipe("right")}
-            className="relative w-24 h-24 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl shadow-[#f43f5e]/30 group"
+            className="relative w-20 h-20 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl shadow-[#f43f5e]/30 group flex-shrink-0"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <motion.span 
-              className="text-5xl sm:text-4xl"
+              className="text-4xl"
               whileHover={{ scale: 1.2 }}
               transition={{ type: "spring", stiffness: 400 }}
             >

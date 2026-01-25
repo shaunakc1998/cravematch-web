@@ -330,3 +330,57 @@ export function unsubscribeFromRoom(channel: RealtimeChannel): void {
   const supabase = createClient();
   supabase.removeChannel(channel);
 }
+
+// Check if all participants swiped right on a restaurant
+export async function checkConsensus(
+  roomId: string,
+  restaurantId: string
+): Promise<boolean> {
+  const supabase = createClient();
+  
+  // Get participant count
+  const { data: participants, error: pError } = await supabase
+    .from("room_participants")
+    .select()
+    .eq("room_id", roomId);
+  
+  if (pError || !participants || participants.length === 0) return false;
+  
+  // Get right swipes for this restaurant
+  const { data: swipes, error: sError } = await supabase
+    .from("swipes")
+    .select()
+    .eq("room_id", roomId)
+    .eq("restaurant_id", restaurantId)
+    .eq("direction", "right");
+  
+  if (sError || !swipes) return false;
+  
+  console.log(`Consensus check: ${swipes.length} swipes, ${participants.length} participants`);
+  
+  // Check if all participants swiped right
+  return swipes.length === participants.length;
+}
+
+// Create a match
+export async function createMatch(
+  roomId: string,
+  restaurantId: string
+): Promise<{ success: boolean; error: string | null }> {
+  const supabase = createClient();
+  
+  const { error } = await supabase
+    .from("matches")
+    .insert({
+      room_id: roomId,
+      restaurant_id: restaurantId
+    });
+  
+  if (error) {
+    console.error("Error creating match:", error);
+    return { success: false, error: error.message };
+  }
+  
+  console.log("Match created for restaurant:", restaurantId);
+  return { success: true, error: null };
+}
