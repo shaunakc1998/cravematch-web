@@ -121,11 +121,13 @@ export default function GroupLobby() {
   const setupRoomSubscription = useCallback(() => {
     if (!currentRoom) return;
 
+    console.log("Setting up subscription for room:", currentRoom.id);
+
     const subscription = subscribeToRoom(
       currentRoom.id,
       // Participant change callback
       (updatedParticipants: SupabaseParticipant[]) => {
-        console.log("Participants updated:", updatedParticipants);
+        console.log("Participants updated from subscription:", updatedParticipants);
         const formattedParticipants = updatedParticipants.map(p => ({
           id: p.user_id,
           name: p.name,
@@ -135,7 +137,7 @@ export default function GroupLobby() {
       },
       // Room change callback
       (updatedRoom: SupabaseRoom) => {
-        console.log("Room updated:", updatedRoom);
+        console.log("Room updated from subscription:", updatedRoom);
         setCurrentRoom(updatedRoom);
         if (updatedRoom.status === "active") {
           setSessionState("swiping");
@@ -154,15 +156,44 @@ export default function GroupLobby() {
   // Clean up subscription on unmount or room change
   useEffect(() => {
     if (currentRoom) {
+      console.log("Current room changed, setting up subscription");
       setupRoomSubscription();
     }
 
     return () => {
       if (roomSubscription) {
+        console.log("Cleaning up subscription");
         unsubscribeFromRoom(roomSubscription);
       }
     };
   }, [currentRoom, setupRoomSubscription, roomSubscription]);
+
+  // Fetch participants periodically as fallback
+  useEffect(() => {
+    if (!currentRoom || sessionState !== "waiting") return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { getRoomParticipants } = await import("../lib/roomService");
+        const updatedParticipants = await getRoomParticipants(currentRoom.id);
+        const formattedParticipants = updatedParticipants.map(p => ({
+          id: p.user_id,
+          name: p.name,
+          isReady: p.is_ready
+        }));
+        
+        // Only update if different
+        if (JSON.stringify(formattedParticipants) !== JSON.stringify(participants)) {
+          console.log("Participants updated from polling:", formattedParticipants);
+          setParticipants(formattedParticipants);
+        }
+      } catch (err) {
+        console.error("Error polling participants:", err);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [currentRoom, sessionState, participants]);
 
   // Start swiping (host only)
   const startSwiping = async () => {
