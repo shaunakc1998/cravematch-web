@@ -85,7 +85,7 @@ function AppContent() {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <div className="h-screen w-full bg-[#050505] overflow-hidden flex flex-col">
+    <div className="h-screen w-full bg-[#050505] overflow-hidden flex flex-col pb-20">
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Primary gradient orb */}

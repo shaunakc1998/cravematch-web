@@ -62,7 +62,7 @@ export default function BottomNavBar() {
   const { activeTab, setActiveTab, matches } = useApp();
 
   return (
-    <nav className="safe-area-bottom relative z-50 flex-shrink-0">
+    <nav className="safe-area-bottom fixed bottom-0 left-0 right-0 z-50 flex-shrink-0 w-full">
       {/* Glass background */}
       <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-t border-[rgba(255,255,255,0.06)]" />
       
