@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -61,126 +60,84 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex">
-      {/* Animated Background */}
-      <div className="animated-bg" />
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] flex overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#ff4d6d]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#ff6b8a]/5 rounded-full blur-[120px]" />
+      </div>
 
       {/* Left Side - Branding (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 flex-col justify-center items-center p-12 relative overflow-hidden">
-        {/* Decorative Elements */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-[#ff4d6d]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#ff6b8a]/10 rounded-full blur-3xl" />
-        
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 flex-col justify-center px-16 xl:px-24 relative">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 max-w-lg"
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-xl"
         >
           {/* Logo */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center text-3xl">
-              🍽️
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center shadow-2xl shadow-[#ff4d6d]/25">
+              <span className="text-2xl">🍽️</span>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold">
-                <span className="text-white">Crave</span>
-                <span className="text-[#ff4d6d]">Match</span>
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              <span className="text-white">Crave</span>
+              <span className="text-[#ff4d6d]">Match</span>
+            </h1>
           </div>
 
-          {/* Tagline */}
-          <h2 className="text-3xl xl:text-4xl font-bold text-white mb-4 leading-tight">
-            Find your next meal,<br />
-            <span className="text-[#ff4d6d]">together.</span>
+          {/* Hero Text */}
+          <h2 className="text-5xl xl:text-6xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
+            Decide where to eat,{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff4d6d] to-[#ff8fa3]">
+              together.
+            </span>
           </h2>
-          <p className="text-[#6b7280] text-lg mb-12 leading-relaxed">
-            Swipe through restaurants, match with friends, and discover the perfect place to eat. No more &quot;I don&apos;t know, what do you want?&quot;
+          
+          <p className="text-xl text-[#8b8b8b] mb-16 leading-relaxed max-w-lg">
+            Swipe through restaurants with friends. When everyone matches, 
+            you&apos;ve found your spot. No more endless debates.
           </p>
 
           {/* Features */}
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
-                ✨
-              </div>
-              <div>
-                <h3 className="text-white font-semibold">Swipe to Discover</h3>
-                <p className="text-[#6b7280] text-sm">Beautiful food photos. Simple swipe gestures.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
-                👥
-              </div>
-              <div>
-                <h3 className="text-white font-semibold">Group Sessions</h3>
-                <p className="text-[#6b7280] text-sm">Create a room and swipe with friends in real-time.</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center text-2xl">
-                ❤️
-              </div>
-              <div>
-                <h3 className="text-white font-semibold">Instant Matches</h3>
-                <p className="text-[#6b7280] text-sm">When everyone agrees, it&apos;s time to eat!</p>
-              </div>
-            </motion.div>
+          <div className="grid grid-cols-3 gap-6">
+            {[
+              { emoji: "👆", label: "Swipe" },
+              { emoji: "👥", label: "Match" },
+              { emoji: "🍕", label: "Eat" },
+            ].map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-[#1a1a1a] border border-[#252525] flex items-center justify-center text-3xl">
+                  {item.emoji}
+                </div>
+                <span className="text-[#6b6b6b] text-sm font-medium">{item.label}</span>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </div>
 
       {/* Right Side - Auth Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col items-center justify-center px-6 py-12 lg:px-12">
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col items-center justify-center px-6 sm:px-12 lg:px-16 py-12 relative">
         {/* Mobile Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 text-center lg:hidden"
+          className="mb-10 text-center lg:hidden"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center text-2xl">
-              🍽️
-            </div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#ff4d6d] to-[#ff6b8a] flex items-center justify-center shadow-2xl shadow-[#ff4d6d]/25">
+            <span className="text-3xl">🍽️</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             <span className="text-white">Crave</span>
             <span className="text-[#ff4d6d]">Match</span>
           </h1>
-          <p className="text-[#6b7280] mt-2">Find your next meal together</p>
-        </motion.div>
-
-        {/* Desktop Welcome */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="hidden lg:block text-center mb-8"
-        >
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {isLogin ? "Welcome back!" : "Create your account"}
-          </h2>
-          <p className="text-[#6b7280]">
-            {isLogin ? "Sign in to continue swiping" : "Join thousands of food lovers"}
-          </p>
         </motion.div>
 
         {/* Auth Card */}
@@ -188,58 +145,67 @@ export default function AuthPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="w-full max-w-sm lg:max-w-md"
+          className="w-full max-w-[400px]"
         >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+              {isLogin ? "Welcome back" : "Create account"}
+            </h2>
+            <p className="text-[#6b6b6b]">
+              {isLogin 
+                ? "Enter your credentials to continue" 
+                : "Start matching with friends today"}
+            </p>
+          </div>
+
           {/* Tab Switcher */}
-          <div className="flex bg-[#1a1a1a] rounded-2xl p-1.5 mb-6">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-3.5 rounded-xl font-semibold transition-all ${
-                isLogin
-                  ? "bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white shadow-lg shadow-[#ff4d6d]/20"
-                  : "text-[#6b7280] hover:text-white"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-3.5 rounded-xl font-semibold transition-all ${
-                !isLogin
-                  ? "bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white shadow-lg shadow-[#ff4d6d]/20"
-                  : "text-[#6b7280] hover:text-white"
-              }`}
-            >
-              Sign Up
-            </button>
+          <div className="flex bg-[#141414] rounded-xl p-1 mb-8 border border-[#1f1f1f]">
+            {["Sign In", "Sign Up"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setIsLogin(tab === "Sign In")}
+                className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  (tab === "Sign In" && isLogin) || (tab === "Sign Up" && !isLogin)
+                    ? "bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white shadow-lg shadow-[#ff4d6d]/20"
+                    : "text-[#6b6b6b] hover:text-white"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field (Sign Up only) */}
-            {!isLogin && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <label className="block text-[#6b7280] text-sm font-medium mb-2">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
-                />
-              </motion.div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <AnimatePresence mode="wait">
+              {/* Name Field (Sign Up only) */}
+              {!isLogin && (
+                <motion.div
+                  key="name"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <label className="block text-[#8b8b8b] text-sm font-medium mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-[#141414] border border-[#252525] rounded-xl px-4 py-3.5 text-white text-base placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-1 focus:ring-[#ff4d6d]/50 transition-all"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Email Field */}
             <div>
-              <label className="block text-[#6b7280] text-sm font-medium mb-2">
-                Email Address
+              <label className="block text-[#8b8b8b] text-sm font-medium mb-2">
+                Email
               </label>
               <input
                 type="email"
@@ -247,67 +213,75 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
+                className="w-full bg-[#141414] border border-[#252525] rounded-xl px-4 py-3.5 text-white text-base placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-1 focus:ring-[#ff4d6d]/50 transition-all"
               />
             </div>
 
             {/* Password Field */}
             <div>
-              <label className="block text-[#6b7280] text-sm font-medium mb-2">
+              <label className="block text-[#8b8b8b] text-sm font-medium mb-2">
                 Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={isLogin ? "Enter your password" : "Create a password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4 pr-12 text-white placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-2 focus:ring-[#ff4d6d]/20 transition-all"
+                  className="w-full bg-[#141414] border border-[#252525] rounded-xl px-4 py-3.5 pr-16 text-white text-base placeholder:text-[#4a4a4a] focus:outline-none focus:border-[#ff4d6d] focus:ring-1 focus:ring-[#ff4d6d]/50 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white transition-colors text-sm font-medium"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b6b6b] hover:text-white transition-colors text-sm font-medium"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
+              {!isLogin && (
+                <p className="text-[#4a4a4a] text-xs mt-2">
+                  Must be at least 6 characters
+                </p>
+              )}
             </div>
 
             {/* Error Message */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-xl bg-red-500/10 border border-red-500/20"
-              >
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 rounded-xl bg-red-500/10 border border-red-500/20"
+                >
+                  <p className="text-red-400 text-sm text-center">{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Success Message */}
-            {success && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-xl bg-green-500/10 border border-green-500/20"
-              >
-                <p className="text-green-400 text-sm text-center">{success}</p>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-4 rounded-xl bg-green-500/10 border border-green-500/20"
+                >
+                  <p className="text-green-400 text-sm text-center">{success}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-bold text-lg rounded-xl disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#ff4d6d]/30 hover:shadow-xl hover:shadow-[#ff4d6d]/40 mt-6"
+              className="w-full py-4 bg-gradient-to-r from-[#ff4d6d] to-[#ff6b8a] text-white font-semibold text-base rounded-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all shadow-xl shadow-[#ff4d6d]/25 hover:shadow-2xl hover:shadow-[#ff4d6d]/30 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {isLogin ? "Signing in..." : "Creating account..."}
-                </>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : isLogin ? (
                 "Sign In"
               ) : (
@@ -317,20 +291,26 @@ export default function AuthPage() {
           </form>
 
           {/* Footer */}
-          <p className="text-center text-[#6b7280] text-sm mt-6">
+          <p className="text-center text-[#6b6b6b] text-sm mt-8">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-[#ff4d6d] font-semibold hover:underline"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setSuccess("");
+              }}
+              className="text-[#ff4d6d] font-semibold hover:text-[#ff6b8a] transition-colors"
             >
               {isLogin ? "Sign up" : "Sign in"}
             </button>
           </p>
 
-          {/* Terms (Sign Up only) */}
+          {/* Terms */}
           {!isLogin && (
-            <p className="text-center text-[#4b5563] text-xs mt-4">
-              By creating an account, you agree to our Terms of Service and Privacy Policy
+            <p className="text-center text-[#4a4a4a] text-xs mt-6 leading-relaxed">
+              By creating an account, you agree to our{" "}
+              <span className="text-[#6b6b6b]">Terms of Service</span> and{" "}
+              <span className="text-[#6b6b6b]">Privacy Policy</span>
             </p>
           )}
         </motion.div>

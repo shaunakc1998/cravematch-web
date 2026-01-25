@@ -1,75 +1,79 @@
 "use client";
 
-import { Search, Users, Heart } from "lucide-react";
-import { useApp, TabType } from "../context/AppContext";
 import { motion } from "framer-motion";
+import { useApp } from "../context/AppContext";
+
+type TabType = "discover" | "matches" | "group";
 
 interface NavItem {
-  icon: React.ReactNode;
+  id: TabType;
   label: string;
-  tab: TabType;
+  emoji: string;
 }
+
+const navItems: NavItem[] = [
+  { id: "discover", label: "Discover", emoji: "🔍" },
+  { id: "matches", label: "Matches", emoji: "❤️" },
+  { id: "group", label: "Group", emoji: "👥" },
+];
 
 export default function BottomNavBar() {
   const { activeTab, setActiveTab, matches } = useApp();
 
-  const navItems: NavItem[] = [
-    {
-      icon: <Search className="w-6 h-6" />,
-      label: "Discover",
-      tab: "discover",
-    },
-    {
-      icon: <Heart className="w-6 h-6" />,
-      label: "Matches",
-      tab: "matches",
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      label: "Group",
-      tab: "group",
-    },
-  ];
-
   return (
-    <nav className="w-full bg-[#0a0a0a] border-t border-[#1a1a1a] safe-area-bottom">
-      <div className="flex items-center justify-around py-2">
+    <nav className="safe-area-bottom bg-[#0a0a0a] border-t border-[#1a1a1a]">
+      <div className="flex items-center justify-around px-4 py-2">
         {navItems.map((item) => {
-          const isActive = activeTab === item.tab;
-          const hasNotification = item.tab === "matches" && matches.length > 0;
+          const isActive = activeTab === item.id;
+          const hasNotification = item.id === "matches" && matches.length > 0;
 
           return (
             <button
-              key={item.label}
-              onClick={() => setActiveTab(item.tab)}
-              className={`relative flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-all active:scale-90 ${
-                isActive
-                  ? "text-[#ff4d6d]"
-                  : "text-[#6b7280] active:text-white"
-              }`}
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className="relative flex flex-col items-center justify-center py-2 px-6 rounded-xl transition-all"
             >
+              {/* Active Background */}
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-[#ff4d6d]/10 rounded-xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                />
+              )}
+
+              {/* Icon */}
               <div className="relative">
-                {item.icon}
+                <motion.span
+                  className="text-2xl block"
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: "spring", bounce: 0.4 }}
+                >
+                  {item.emoji}
+                </motion.span>
+
+                {/* Notification Badge */}
                 {hasNotification && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-[#ff4d6d] rounded-full flex items-center justify-center"
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff4d6d] rounded-full flex items-center justify-center"
                   >
-                    <span className="text-[10px] font-bold text-white">
+                    <span className="text-white text-[10px] font-bold">
                       {matches.length > 9 ? "9+" : matches.length}
                     </span>
                   </motion.div>
                 )}
               </div>
-              <span className="text-xs font-medium">{item.label}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute -bottom-2 w-1 h-1 bg-[#ff4d6d] rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
+
+              {/* Label */}
+              <span
+                className={`text-xs font-medium mt-1 transition-colors ${
+                  isActive ? "text-[#ff4d6d]" : "text-[#6b6b6b]"
+                }`}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}
