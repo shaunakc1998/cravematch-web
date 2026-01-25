@@ -140,7 +140,7 @@ function AppContent() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative flex-1 flex flex-col max-w-lg mx-auto w-full"
+        className="relative flex-1 flex flex-col max-w-lg mx-auto w-full overflow-hidden"
         style={{ minHeight: 0 }}
       >
         {/* Premium Header */}

@@ -62,12 +62,12 @@ export default function BottomNavBar() {
   const { activeTab, setActiveTab, matches } = useApp();
 
   return (
-    <nav className="safe-area-bottom relative">
+    <nav className="safe-area-bottom relative z-50 flex-shrink-0">
       {/* Glass background */}
       <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-t border-[rgba(255,255,255,0.06)]" />
       
       {/* Content */}
-      <div className="relative flex items-center justify-around px-2 py-2">
+      <div className="relative flex items-center justify-around px-2 py-3">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           const hasNotification = item.id === "matches" && matches.length > 0;
