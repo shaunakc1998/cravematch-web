@@ -1,59 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "CraveMatch - Swipe to Eat Together",
-  description: "Find the perfect restaurant for your group. Swipe right on what you crave, match with friends, and discover your next meal together.",
+  title: "CraveMatch — Find where to eat together",
+  description: "Swipe on restaurants, match with friends, and decide where to eat together. Fast, fun, no arguments.",
   manifest: "/manifest.json",
-  keywords: ["restaurant", "food", "dining", "group decision", "swipe", "match", "friends"],
+  keywords: ["restaurant", "food", "dining", "group decision", "swipe", "match"],
   authors: [{ name: "CraveMatch" }],
   creator: "CraveMatch",
-  publisher: "CraveMatch",
   robots: "index, follow",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://cravematch.app",
     siteName: "CraveMatch",
-    title: "CraveMatch - Swipe to Eat Together",
-    description: "Find the perfect restaurant for your group. Swipe right on what you crave!",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "CraveMatch - Swipe to Eat Together",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "CraveMatch - Swipe to Eat Together",
-    description: "Find the perfect restaurant for your group. Swipe right on what you crave!",
-    images: ["/og-image.png"],
+    title: "CraveMatch — Find where to eat together",
+    description: "Swipe on restaurants, match with friends, decide where to eat.",
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "CraveMatch",
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -63,47 +39,38 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#050505" },
-    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F6F2" },
+    { media: "(prefers-color-scheme: dark)",  color: "#F7F6F2" },
   ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={inter.variable}>
       <head>
-        {/* Preconnect to external resources */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505] text-white`}
+        className="antialiased"
+        style={{ background: "#F7F6F2", color: "#1C1917" }}
         suppressHydrationWarning
       >
         <AuthProvider>
-          {/* Skip to main content for accessibility */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#f43f5e] focus:text-white focus:rounded-lg"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg"
+            style={{ background: "#16A34A", color: "white" }}
           >
             Skip to main content
           </a>
-          
-          {/* Main app wrapper */}
           <div id="main-content" className="relative h-full">
             {children}
           </div>
-          
-          {/* Portal root for modals */}
           <div id="modal-root" />
         </AuthProvider>
       </body>
