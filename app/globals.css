@@ -117,7 +117,7 @@ body {
   font-feature-settings: 'rlig' 1, 'calt' 1;
 }
 
-#__next, main {
+#__next {
   height: 100%;
   width: 100%;
 }

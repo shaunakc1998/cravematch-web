@@ -99,7 +99,7 @@ export default function RootLayout({
           </a>
           
           {/* Main app wrapper */}
-          <div id="main-content" className="relative min-h-screen">
+          <div id="main-content" className="relative h-full">
             {children}
           </div>
           
