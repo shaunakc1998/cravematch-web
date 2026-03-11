@@ -62,7 +62,7 @@ export default function GroupLobby() {
     setIsLoading(true);
     try {
       const { room, error: roomError } = await createRoom(user.id, userName);
-      
+
       if (roomError) {
         setError(roomError);
         setIsLoading(false);
@@ -99,7 +99,7 @@ export default function GroupLobby() {
     setIsLoading(true);
     try {
       const { room, error: joinError } = await joinRoom(joinCode, user.id, userName);
-      
+
       if (joinError) {
         setError(joinError);
         setIsLoading(false);
@@ -111,7 +111,7 @@ export default function GroupLobby() {
         setRoomCode(room.code);
         setSessionState("waiting");
         setError("");
-        
+
         // Fetch existing participants immediately
         const existingParticipants = await getRoomParticipants(room.id);
         const formattedParticipants = existingParticipants.map(p => ({
@@ -284,7 +284,7 @@ export default function GroupLobby() {
     try {
       // Call startSession to update database
       const { success, error: startError } = await startSession(currentRoom.id, user.id);
-      
+
       if (!success || startError) {
         setError(startError || "Failed to start session");
         setIsLoading(false);
@@ -311,7 +311,7 @@ export default function GroupLobby() {
     }
 
     const restaurant = restaurants[currentIndex];
-    
+
     // Record swipe to database
     try {
       const { success, error: swipeError } = await recordSwipe(
@@ -355,125 +355,71 @@ export default function GroupLobby() {
   // IDLE STATE
   if (sessionState === "idle") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8">
+      <div className="h-full flex flex-col items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm text-center"
+          className="w-full max-w-sm"
         >
-          {/* Hero Icon */}
-          <motion.div
-            className="relative w-24 h-24 mx-auto mb-8"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          >
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#f43f5e]/20 to-[#fb7185]/10 blur-xl" />
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-[#f43f5e]/10 to-transparent border border-[rgba(255,255,255,0.06)] flex items-center justify-center">
-              <motion.span 
-                className="text-5xl"
-                animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                👥
-              </motion.span>
-            </div>
-          </motion.div>
-          
-          {/* Title */}
-          <motion.h1 
-            className="text-3xl font-bold text-white mb-3 tracking-tight"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Swipe Together
-          </motion.h1>
-          <motion.p 
-            className="text-[#a1a1aa] mb-10 leading-relaxed"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            Create a session and invite friends. When everyone matches on a restaurant, it&apos;s time to eat!
-          </motion.p>
+          {/* Icon */}
+          <div className="text-center mb-8">
+            <motion.div
+              className="text-6xl inline-block mb-4"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            >
+              👥
+            </motion.div>
+            <h1 className="text-2xl font-bold text-white mb-2">Swipe Together</h1>
+            <p className="text-[#6b7280] text-sm leading-relaxed">
+              Match with friends on where to eat. When everyone agrees, it&apos;s decided.
+            </p>
+          </div>
 
-          {/* Host Button */}
+          {/* Host button */}
           <motion.button
             onClick={hostSession}
             disabled={isLoading}
-            className="relative w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-4 overflow-hidden group disabled:opacity-50"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-3 shadow-lg shadow-rose-500/25 disabled:opacity-50 active:scale-[0.98] transition-transform touch-manipulation"
+            whileTap={{ scale: 0.97 }}
           >
-            {/* Shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            <span className="relative flex items-center justify-center gap-2">
-              <span className="text-xl">🎉</span>
-              <span>{isLoading ? "Creating..." : "Host a Session"}</span>
-            </span>
+            {isLoading ? "Creating..." : "🎉  Host a Session"}
           </motion.button>
 
           {/* Divider */}
-          <motion.div 
-            className="flex items-center gap-4 my-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[rgba(255,255,255,0.06)]" />
-            <span className="text-[#52525b] text-sm font-medium">or join a friend</span>
-            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[rgba(255,255,255,0.06)]" />
-          </motion.div>
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-[#4b5563] text-xs">or join with a code</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
 
-          {/* Join Input */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+          {/* Join input */}
+          <div className="mb-3">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+              placeholder="ABCD"
+              maxLength={4}
+              className="w-full bg-[#0d0d0d] border border-white/[0.07] rounded-2xl px-5 py-4 text-white text-center text-3xl tracking-[0.5em] font-bold placeholder:text-[#2d2d2d] focus:outline-none focus:border-[#f43f5e]/50 transition-all"
+            />
+          </div>
+          <button
+            onClick={joinSession}
+            disabled={joinCode.length !== 4 || isLoading}
+            className="w-full py-4 bg-[#0d0d0d] border border-white/[0.07] text-white font-semibold rounded-2xl disabled:opacity-40 active:scale-[0.98] transition-transform touch-manipulation"
           >
-            <div className="relative mb-3">
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-                placeholder="ABCD"
-                className="w-full bg-[#111] border border-[rgba(255,255,255,0.06)] rounded-2xl px-6 py-4 text-white text-center text-2xl tracking-[0.4em] font-bold placeholder:text-[#3f3f46] placeholder:tracking-[0.4em] placeholder:font-normal focus:outline-none focus:border-[#f43f5e] focus:ring-2 focus:ring-[#f43f5e]/10 transition-all"
-                maxLength={4}
-              />
-              {joinCode.length > 0 && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#f43f5e]/10 flex items-center justify-center">
-                    <span className="text-[#f43f5e] text-sm font-bold">{joinCode.length}/4</span>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-            <button
-              onClick={joinSession}
-              disabled={joinCode.length !== 4 || isLoading}
-              className="w-full py-4 bg-[#111] border border-[rgba(255,255,255,0.06)] text-white font-semibold rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.1)] transition-all"
-            >
-              {isLoading ? "Joining..." : "Join Session"}
-            </button>
-          </motion.div>
+            {isLoading ? "Joining..." : "Join Session"}
+          </button>
 
           {/* Error */}
           <AnimatePresence>
             {error && (
               <motion.p
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-[#fb7185] text-sm mt-4 font-medium"
+                exit={{ opacity: 0 }}
+                className="text-[#f43f5e] text-sm text-center mt-4"
               >
                 {error}
               </motion.p>
@@ -484,92 +430,72 @@ export default function GroupLobby() {
     );
   }
 
-  // WAITING STATE - Show participants and start button
+  // WAITING STATE
   if (sessionState === "waiting") {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm text-center"
-        >
-          {/* Room Code Display */}
-          <motion.div
-            className="mb-8 p-6 bg-[#111] border border-[rgba(255,255,255,0.06)] rounded-2xl"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <p className="text-[#52525b] text-sm mb-2">Room Code</p>
-            <p className="text-4xl font-bold text-[#f43f5e] tracking-widest">{roomCode}</p>
-          </motion.div>
+      <div className="h-full flex flex-col p-5">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1">
+          {/* Room code */}
+          <div className="text-center mb-6">
+            <p className="text-[#4b5563] text-xs mb-1.5 uppercase tracking-wider font-medium">Room Code</p>
+            <div className="inline-block px-8 py-4 bg-[#0d0d0d] border border-white/[0.07] rounded-2xl">
+              <span className="text-4xl font-black text-[#f43f5e] tracking-[0.3em]">{roomCode}</span>
+            </div>
+            <p className="text-[#4b5563] text-xs mt-2">Share this code with friends</p>
+          </div>
 
           {/* Participants */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-8"
-          >
-            <h2 className="text-xl font-bold text-white mb-4">Participants ({participants.length})</h2>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white font-semibold text-sm">Participants</span>
+              <span className="text-[#4b5563] text-xs">{participants.length} joined</span>
+            </div>
             <div className="space-y-2">
-              {participants.map((p) => (
+              {participants.map(p => (
                 <motion.div
                   key={p.id}
-                  className="flex items-center gap-3 p-3 bg-[#111] rounded-xl border border-[rgba(255,255,255,0.06)]"
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3 p-3 bg-[#0d0d0d] rounded-xl border border-white/[0.07]"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center text-white text-xs font-bold">
                     {p.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-white font-medium flex-1">{p.name}</span>
-                  {p.isReady && <span className="text-[#10b981] text-sm">✓ Ready</span>}
+                  <span className="text-white text-sm font-medium flex-1">{p.name}</span>
+                  {p.isReady && <span className="text-[#10b981] text-xs font-medium">Ready</span>}
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Start Button — host only */}
+          {/* Start button (host only) */}
           {currentRoom?.host_id === user?.id && (
             <motion.button
               onClick={startSwiping}
               disabled={participants.length < 2 || isLoading}
-              className="relative w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-4 overflow-hidden group disabled:opacity-50"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-3 shadow-lg shadow-rose-500/20 disabled:opacity-50 active:scale-[0.98] transition-transform touch-manipulation"
+              whileTap={{ scale: 0.97 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              <span className="relative flex items-center justify-center gap-2">
-                <span>{isLoading ? "Starting..." : "Start Swiping"}</span>
-              </span>
+              {isLoading ? "Starting..." : "Start Swiping"}
             </motion.button>
           )}
+          {currentRoom?.host_id !== user?.id && (
+            <div className="w-full py-4 bg-[#0d0d0d] border border-white/[0.07] rounded-2xl text-center text-[#4b5563] text-sm mb-3">
+              Waiting for host to start...
+            </div>
+          )}
 
-          {/* Leave Button */}
-          <motion.button
+          <button
             onClick={() => leaveSession().catch(console.error)}
-            className="w-full py-3 bg-[#111] border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] font-semibold rounded-2xl hover:bg-[rgba(255,255,255,0.05)] transition-all"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            className="w-full py-3.5 bg-[#0d0d0d] border border-white/[0.07] text-[#6b7280] font-semibold rounded-2xl active:scale-[0.98] transition-transform touch-manipulation"
           >
             Leave Session
-          </motion.button>
+          </button>
 
-          {/* Error */}
           <AnimatePresence>
             {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-[#fb7185] text-sm mt-4 font-medium"
-              >
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="text-[#f43f5e] text-sm text-center mt-3">
                 {error}
               </motion.p>
             )}
@@ -579,181 +505,118 @@ export default function GroupLobby() {
     );
   }
 
-  // SWIPING STATE - Show swipe deck
+  // SWIPING STATE
   if (sessionState === "swiping") {
     const currentRestaurant = restaurants[currentIndex];
     const nextRestaurant = restaurants[currentIndex + 1];
-
     return (
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Header with room info */}
-        <div className="px-5 py-3 flex items-center justify-between border-b border-[rgba(255,255,255,0.06)]">
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
           <div>
-            <p className="text-[#52525b] text-xs">Room: {roomCode}</p>
+            <p className="text-[#4b5563] text-xs">Room · {roomCode}</p>
             <p className="text-white text-sm font-semibold">{participants.length} swiping</p>
           </div>
-          <motion.button
+          <button
             onClick={() => leaveSession().catch(console.error)}
-            className="px-4 py-2 bg-[#111] border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] text-sm rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-all"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="px-4 py-2 bg-[#0d0d0d] border border-white/[0.07] text-[#6b7280] text-sm rounded-xl active:scale-95 transition-transform touch-manipulation"
           >
             Leave
-          </motion.button>
+          </button>
         </div>
 
-        {/* Card Stack */}
-        <div className="flex-1 relative px-4 py-2">
-          {/* Next Card (Background) */}
+        {/* Card */}
+        <div className="flex-1 relative mx-4 my-3 min-h-0">
           {nextRestaurant && (
-            <div className="absolute inset-4 sm:inset-6">
-              <RestaurantCardComponent restaurant={nextRestaurant} isBackground />
+            <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-50 scale-[0.95]">
+              <GroupCardContent restaurant={nextRestaurant} />
             </div>
           )}
-
-          {/* Current Card */}
           {currentRestaurant && (
-            <motion.div
-              className="absolute inset-4 sm:inset-6 cursor-grab active:cursor-grabbing touch-none"
-              initial={{ scale: 1, opacity: 1 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <RestaurantCardComponent restaurant={currentRestaurant} />
+            <motion.div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
+              <GroupCardContent restaurant={currentRestaurant} />
             </motion.div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-6 py-4 px-4 pb-20">
+        {/* Buttons */}
+        <div className="flex-shrink-0 flex items-center justify-center gap-5 py-4">
           <motion.button
             onClick={() => handleSwipe("left")}
-            className="relative w-16 h-16 rounded-full bg-[#111] border-2 border-[rgba(255,255,255,0.08)] flex items-center justify-center group shadow-lg flex-shrink-0"
-            whileHover={{ scale: 1.1, borderColor: "rgba(244, 63, 94, 0.5)" }}
-            whileTap={{ scale: 0.9 }}
+            className="w-[60px] h-[60px] rounded-full border-2 border-white/10 bg-[#0d0d0d] flex items-center justify-center touch-manipulation"
+            whileTap={{ scale: 0.88 }}
           >
-            <motion.span 
-              className="text-3xl"
-              whileHover={{ scale: 1.2, rotate: 90 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              ✕
-            </motion.span>
+            <svg className="w-6 h-6 text-[#6b7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </motion.button>
-          
           <motion.button
             onClick={() => handleSwipe("right")}
-            className="relative w-20 h-20 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl shadow-[#f43f5e]/30 group flex-shrink-0"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            className="w-[76px] h-[76px] rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center touch-manipulation"
+            whileTap={{ scale: 0.88 }}
+            style={{ boxShadow: "0 8px 30px rgba(244,63,94,0.4)" }}
           >
-            <motion.span 
-              className="text-4xl"
-              whileHover={{ scale: 1.2 }}
-              transition={{ type: "spring", stiffness: 400 }}
-            >
-              ❤️
-            </motion.span>
-            <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] opacity-30 blur-lg -z-10" />
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
           </motion.button>
         </div>
       </div>
     );
   }
 
-  // MATCHED STATE - Show celebration
+  // MATCHED STATE
   if (sessionState === "matched" && matchedRestaurant) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+      <div className="h-full flex flex-col items-center justify-center p-6">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", bounce: 0.4 }}
-          className="text-center max-w-sm"
+          className="w-full max-w-sm text-center"
         >
           <motion.div
-            className="mb-6"
-            animate={{
-              scale: [1, 1.15, 1],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              repeatDelay: 1.5,
-            }}
+            className="text-6xl mb-4 inline-block"
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5 }}
           >
-            <span className="text-7xl block">🎊</span>
+            🎊
           </motion.div>
+          <h1 className="text-4xl font-black text-white mb-1 tracking-tight">IT&apos;S A MATCH!</h1>
+          <p className="text-[#6b7280] text-sm mb-6">Everyone agreed on this one</p>
 
-          <h1 className="text-5xl font-extrabold text-white mb-4 tracking-tight">
-            IT&apos;S A MATCH!
-          </h1>
-
-          <motion.div
-            className="relative w-full max-w-xs mx-auto mb-6"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-[#f43f5e]/30 to-transparent blur-xl" />
-            
-            <div className="relative bg-[#111] border border-[rgba(255,255,255,0.08)] rounded-3xl overflow-hidden shadow-2xl">
-              <div className="relative h-44 overflow-hidden">
-                <img
-                  src={matchedRestaurant.image}
-                  alt={matchedRestaurant.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent" />
-              </div>
-              
-              <div className="p-5 -mt-6 relative">
-                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
-                  {matchedRestaurant.name}
-                </h2>
-                <div className="flex items-center gap-2 text-[#a1a1aa] text-sm">
-                  <span className="flex items-center gap-1">
-                    <span className="text-yellow-400">★</span>
-                    <span className="font-semibold text-white">{matchedRestaurant.rating}</span>
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-[#52525b]" />
-                  <span>{matchedRestaurant.cuisine}</span>
-                </div>
+          <div className="relative mb-6 rounded-3xl overflow-hidden border border-white/[0.07]">
+            <div className="h-44 overflow-hidden">
+              <img src={matchedRestaurant.image} alt={matchedRestaurant.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="p-4 bg-[#0d0d0d] text-left">
+              <h2 className="text-xl font-bold text-white mb-1">{matchedRestaurant.name}</h2>
+              <div className="flex items-center gap-2 text-sm text-[#6b7280]">
+                <span className="text-amber-400">★</span>
+                <span className="text-white font-semibold">{matchedRestaurant.rating}</span>
+                <span>·</span>
+                <span>{matchedRestaurant.cuisine}</span>
+                <span>·</span>
+                <span>{matchedRestaurant.price}</span>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="flex flex-col gap-3 w-full"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
+          <div className="flex flex-col gap-2.5">
             <motion.button
               onClick={() => setSessionState("swiping")}
-              className="relative w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-bold text-lg rounded-2xl overflow-hidden group shadow-xl shadow-[#f43f5e]/25"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-bold rounded-2xl shadow-lg shadow-rose-500/25 active:scale-[0.98] touch-manipulation"
+              whileTap={{ scale: 0.97 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              <span className="relative flex items-center justify-center gap-2">
-                <span>🍽️</span>
-                <span>Let&apos;s Eat!</span>
-              </span>
+              🍽️  Let&apos;s Eat!
             </motion.button>
-            
-            <motion.button
-              onClick={() => {
-                setSessionState("swiping");
-                setMatchedRestaurant(null);
-              }}
-              className="w-full py-4 bg-[#111] border border-[rgba(255,255,255,0.08)] text-[#a1a1aa] font-semibold rounded-2xl hover:bg-[rgba(255,255,255,0.05)] hover:text-white hover:border-[rgba(255,255,255,0.12)] transition-all"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
+              onClick={() => { setSessionState("swiping"); setMatchedRestaurant(null); }}
+              className="w-full py-4 bg-[#0d0d0d] border border-white/[0.07] text-[#6b7280] font-semibold rounded-2xl active:scale-[0.98] touch-manipulation"
             >
               Keep Swiping
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         </motion.div>
       </div>
     );
@@ -762,61 +625,27 @@ export default function GroupLobby() {
   return null;
 }
 
-function RestaurantCardComponent({ 
-  restaurant, 
-  isBackground = false,
-}: { 
-  restaurant: Restaurant;
-  isBackground?: boolean;
-}) {
+function GroupCardContent({ restaurant }: { restaurant: Restaurant }) {
   return (
-    <div 
-      className={`relative w-full h-full rounded-3xl overflow-hidden ${
-        isBackground ? "scale-[0.95] opacity-40" : "shadow-2xl"
-      }`}
-    >
-      <img
-        src={restaurant.image}
-        alt={restaurant.name}
-        className="absolute inset-0 w-full h-full object-cover"
-        draggable={false}
-      />
-
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-
-      {!isBackground && (
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <div className="flex flex-wrap gap-2 mb-4">
-            {restaurant.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-white text-xs font-medium border border-white/10"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">{restaurant.name}</h2>
-
-          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-white/80 text-sm">
-            <span className="flex items-center gap-1.5">
-              <span className="text-yellow-400">★</span>
-              <span className="font-semibold">{restaurant.rating}</span>
-            </span>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <span>{restaurant.cuisine}</span>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <span className="font-medium">{restaurant.price}</span>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <span>{restaurant.distance}</span>
-          </div>
+    <div className="relative w-full h-full bg-[#0d0d0d]">
+      <img src={restaurant.image} alt={restaurant.name} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-5">
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {restaurant.tags.slice(0, 3).map(tag => (
+            <span key={tag} className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs border border-white/10">{tag}</span>
+          ))}
         </div>
-      )}
-
-      {!isBackground && (
-        <div className="absolute inset-0 rounded-3xl border border-white/10 pointer-events-none" />
-      )}
+        <h2 className="text-2xl font-bold text-white tracking-tight mb-1">{restaurant.name}</h2>
+        <div className="flex items-center gap-2 text-sm text-white/70">
+          <span className="text-amber-400">★</span>
+          <span className="text-white font-semibold">{restaurant.rating}</span>
+          <span>·</span>
+          <span>{restaurant.cuisine}</span>
+          <span>·</span>
+          <span className="text-white/90">{restaurant.price}</span>
+        </div>
+      </div>
     </div>
   );
 }
