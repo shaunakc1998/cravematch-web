@@ -16,10 +16,15 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Redirect already-logged-in users (also handles auto-login after signup with email confirm disabled)
+  useEffect(() => {
+    if (user) router.push("/");
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +39,17 @@ export default function AuthPage() {
       } else {
         if (!name.trim()) { setError("Please enter your name"); setLoading(false); return; }
         if (password.length < 6) { setError("Password must be at least 6 characters"); setLoading(false); return; }
-        const { error } = await signUp(email, password, name);
+        const { error, session } = await signUp(email, password, name);
         if (error) setError(error.message);
-        else { setSuccess("Account created! You can now sign in."); setIsLogin(true); setPassword(""); setName(""); }
+        else if (session) {
+          // Email confirmation disabled — user is auto-logged in, useEffect will redirect
+        } else {
+          // Email confirmation required
+          setSuccess("Check your email to confirm your account, then sign in.");
+          setIsLogin(true);
+          setPassword("");
+          setName("");
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -92,7 +105,7 @@ export default function AuthPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-[#111] rounded-3xl border border-white/[0.1] p-6 shadow-2xl" style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}>
+        <div className="bg-[#1c1c1e] rounded-3xl border border-white/[0.13] p-6" style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 25px 60px rgba(0,0,0,0.7)" }}>
 
           {/* Toggle */}
           <div className="flex bg-[#0a0a0a] rounded-2xl p-1 mb-6 relative border border-white/[0.06]">
