@@ -1,6 +1,17 @@
 -- CraveMatch Database Schema
 -- Run this in your Supabase SQL Editor: https://supabase.com/dashboard/project/_/sql
 
+-- ─── MIGRATIONS (run these if you already have the schema set up) ───────────
+-- Add filters column to rooms (safe to run multiple times)
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS filters JSONB DEFAULT '{"radius":5,"priceLevels":[1,2,3,4],"dietary":[],"openNow":false}';
+
+-- Add liked column to swipes (alternative to direction)
+ALTER TABLE swipes ADD COLUMN IF NOT EXISTS liked BOOLEAN;
+
+-- Update liked from direction for existing rows
+UPDATE swipes SET liked = (direction = 'right') WHERE liked IS NULL;
+-- ────────────────────────────────────────────────────────────────────────────
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

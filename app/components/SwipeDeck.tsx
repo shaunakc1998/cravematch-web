@@ -2,12 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate, PanInfo } from "framer-motion";
-import { restaurants, Restaurant } from "../data/restaurants";
+import { restaurants as allRestaurants, Restaurant } from "../data/restaurants";
 import { useApp } from "../context/AppContext";
+import { SwipeData } from "../lib/algorithm";
+import { createClient } from "../lib/supabase";
 
-export default function SwipeDeck() {
+interface SwipeDeckProps {
+  filteredRestaurants?: Restaurant[]; // if provided, use instead of all restaurants
+  sessionId?: string; // if in group mode, record swipes to Supabase
+  onComplete?: (swipes: SwipeData[]) => void; // callback when all swiped
+  maxSwipes?: number; // default 25
+}
+
+export default function SwipeDeck({
+  filteredRestaurants,
+  sessionId,
+  onComplete,
+  maxSwipes = 25,
+}: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [localSwipes, setLocalSwipes] = useState<SwipeData[]>([]);
   const { addMatch } = useApp();
+
+  const restaurantPool = (filteredRestaurants ?? allRestaurants).slice(0, maxSwipes);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -21,17 +38,54 @@ export default function SwipeDeck() {
     x.set(0);
   }, [currentIndex, x]);
 
-  const currentRestaurant = restaurants[currentIndex];
-  const nextRestaurant = restaurants[currentIndex + 1];
+  const currentRestaurant = restaurantPool[currentIndex];
+  const nextRestaurant = restaurantPool[currentIndex + 1];
 
-  const handleSwipe = (direction: "left" | "right") => {
-    if (direction === "right" && currentRestaurant) {
+  const handleSwipe = async (direction: "left" | "right") => {
+    if (!currentRestaurant) return;
+
+    const liked = direction === "right";
+
+    if (liked) {
       addMatch(currentRestaurant);
     }
+
+    const swipeData: SwipeData = {
+      userId: "solo",
+      restaurantId: currentRestaurant.id,
+      liked,
+    };
+
+    const updatedSwipes = [...localSwipes, swipeData];
+    setLocalSwipes(updatedSwipes);
+
+    // Record to Supabase in group mode
+    if (sessionId) {
+      try {
+        const supabase = createClient();
+        await supabase.from("swipes").upsert(
+          {
+            room_id: sessionId,
+            restaurant_id: currentRestaurant.id,
+            liked,
+          },
+          { onConflict: "room_id,user_id,restaurant_id" }
+        );
+      } catch (err) {
+        console.error("Failed to record swipe to Supabase:", err);
+      }
+    }
+
     animate(x, direction === "left" ? -500 : 500, {
       duration: 0.35,
       ease: [0.36, 0, 0.66, -0.56],
-      onComplete: () => setCurrentIndex(prev => prev + 1),
+      onComplete: () => {
+        const nextIdx = currentIndex + 1;
+        setCurrentIndex(nextIdx);
+        if (nextIdx >= restaurantPool.length && onComplete) {
+          onComplete(updatedSwipes);
+        }
+      },
     });
   };
 
@@ -47,7 +101,7 @@ export default function SwipeDeck() {
     }
   };
 
-  if (currentIndex >= restaurants.length) {
+  if (currentIndex >= restaurantPool.length) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
         <motion.div
@@ -68,7 +122,10 @@ export default function SwipeDeck() {
             You&apos;ve seen all restaurants. Check back later for more!
           </p>
           <motion.button
-            onClick={() => setCurrentIndex(0)}
+            onClick={() => {
+              setCurrentIndex(0);
+              setLocalSwipes([]);
+            }}
             className="px-8 py-3.5 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl shadow-lg shadow-rose-500/25 active:scale-95 transition-transform"
             whileTap={{ scale: 0.95 }}
           >
@@ -84,7 +141,7 @@ export default function SwipeDeck() {
       {/* Counter */}
       <div className="flex-shrink-0 flex items-center justify-center py-2">
         <span className="text-[#4b5563] text-xs font-medium tabular-nums">
-          {currentIndex + 1} <span className="text-[#2d2d2d]">/</span> {restaurants.length}
+          {currentIndex + 1} <span className="text-[#2d2d2d]">/</span> {restaurantPool.length}
         </span>
       </div>
 
@@ -192,14 +249,19 @@ function CardContent({
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-5">
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {restaurant.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/10">
+          {restaurant.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/10"
+            >
               {tag}
             </span>
           ))}
         </div>
 
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-2 leading-none">{restaurant.name}</h2>
+        <h2 className="text-3xl font-bold text-white tracking-tight mb-2 leading-none">
+          {restaurant.name}
+        </h2>
 
         <div className="flex items-center gap-3 text-sm text-white/70">
           <span className="flex items-center gap-1">
