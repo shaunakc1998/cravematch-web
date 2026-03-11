@@ -91,8 +91,8 @@ export default function BottomNavBar() {
               {/* Icon Container */}
               <div className="relative">
                 <motion.div
-                  animate={{ 
-                    scale: isActive ? 1 : 1,
+                  animate={{
+                    scale: isActive ? 1 : 0.95,
                     y: isActive ? -2 : 0
                   }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}

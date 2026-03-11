@@ -1,17 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAuth } from "../context/AuthContext";
 import { restaurants, Restaurant } from "../data/restaurants";
-import { 
-  createRoom, 
-  joinRoom, 
-  subscribeToRoom, 
-  unsubscribeFromRoom, 
+import { createClient } from "../lib/supabase";
+import {
+  createRoom,
+  joinRoom,
+  subscribeToRoom,
+  unsubscribeFromRoom,
   startSession,
   recordSwipe,
-  Room as SupabaseRoom, 
+  getRoomParticipants,
+  getRoomMatches,
+  checkConsensus,
+  createMatch,
+  leaveRoom,
+  Room as SupabaseRoom,
   Participant as SupabaseParticipant,
   Match as SupabaseMatch
 } from "../lib/roomService";
@@ -34,8 +41,14 @@ export default function GroupLobby() {
   const [matchedRestaurant, setMatchedRestaurant] = useState<Restaurant | null>(null);
   const [error, setError] = useState("");
   const [currentRoom, setCurrentRoom] = useState<SupabaseRoom | null>(null);
-  const [roomSubscription, setRoomSubscription] = useState<any>(null);
+  const roomSubscriptionRef = useRef<RealtimeChannel | null>(null);
+  const currentIndexRef = useRef(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Keep ref in sync with state so polling closures always see latest value
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   const userName = user?.user_metadata?.name || user?.email?.split("@")[0] || "You";
 
@@ -100,7 +113,6 @@ export default function GroupLobby() {
         setError("");
         
         // Fetch existing participants immediately
-        const { getRoomParticipants } = await import("../lib/roomService");
         const existingParticipants = await getRoomParticipants(room.id);
         const formattedParticipants = existingParticipants.map(p => ({
           id: p.user_id,
@@ -117,56 +129,47 @@ export default function GroupLobby() {
     }
   };
 
-  // Set up real-time subscription
-  const setupRoomSubscription = useCallback(() => {
+  // Set up real-time subscription — depends on room ID only to prevent re-subscription
+  // every time the room object is updated by polling
+  useEffect(() => {
     if (!currentRoom) return;
 
-    console.log("Setting up subscription for room:", currentRoom.id);
+    if (roomSubscriptionRef.current) {
+      unsubscribeFromRoom(roomSubscriptionRef.current);
+    }
 
-    const subscription = subscribeToRoom(
+    roomSubscriptionRef.current = subscribeToRoom(
       currentRoom.id,
-      // Participant change callback
       (updatedParticipants: SupabaseParticipant[]) => {
-        console.log("Participants updated from subscription:", updatedParticipants);
-        const formattedParticipants = updatedParticipants.map(p => ({
+        setParticipants(updatedParticipants.map(p => ({
           id: p.user_id,
           name: p.name,
           isReady: p.is_ready
-        }));
-        setParticipants(formattedParticipants);
+        })));
       },
-      // Room change callback
       (updatedRoom: SupabaseRoom) => {
-        console.log("Room updated from subscription:", updatedRoom);
         setCurrentRoom(updatedRoom);
         if (updatedRoom.status === "active") {
           setSessionState("swiping");
         }
       },
-      // Match callback
       (match: SupabaseMatch) => {
-        // TODO: Implement match logic
-        console.log("Match found:", match);
+        const matched = restaurants.find(r => r.id === match.restaurant_id);
+        if (matched) {
+          setMatchedRestaurant(matched);
+          setSessionState("matched");
+        }
       }
     );
 
-    setRoomSubscription(subscription);
-  }, [currentRoom]);
-
-  // Clean up subscription on unmount or room change
-  useEffect(() => {
-    if (currentRoom) {
-      console.log("Current room changed, setting up subscription");
-      setupRoomSubscription();
-    }
-
     return () => {
-      if (roomSubscription) {
-        console.log("Cleaning up subscription");
-        unsubscribeFromRoom(roomSubscription);
+      if (roomSubscriptionRef.current) {
+        unsubscribeFromRoom(roomSubscriptionRef.current);
+        roomSubscriptionRef.current = null;
       }
     };
-  }, [currentRoom, setupRoomSubscription, roomSubscription]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRoom?.id]);
 
   // Fetch participants periodically as fallback
   useEffect(() => {
@@ -174,35 +177,29 @@ export default function GroupLobby() {
 
     const interval = setInterval(async () => {
       try {
-        const { getRoomParticipants } = await import("../lib/roomService");
         const updatedParticipants = await getRoomParticipants(currentRoom.id);
         const formattedParticipants = updatedParticipants.map(p => ({
           id: p.user_id,
           name: p.name,
           isReady: p.is_ready
         }));
-        
-        // Only update if different
-        if (JSON.stringify(formattedParticipants) !== JSON.stringify(participants)) {
-          console.log("Participants updated from polling:", formattedParticipants);
-          setParticipants(formattedParticipants);
-        }
+        setParticipants(formattedParticipants);
       } catch (err) {
         console.error("Error polling participants:", err);
       }
-    }, 2000); // Poll every 2 seconds
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [currentRoom, sessionState, participants]);
+  }, [currentRoom, sessionState]);
 
-  // Poll room status as fallback for real-time
+  // Poll room status as fallback for real-time — only needed while waiting
   useEffect(() => {
-    if (!currentRoom) return;
+    if (!currentRoom || sessionState !== "waiting") return;
+
+    const supabase = createClient();
 
     const interval = setInterval(async () => {
       try {
-        const { createClient } = await import("../lib/supabase");
-        const supabase = createClient();
         const { data: updatedRoom, error } = await supabase
           .from("rooms")
           .select()
@@ -215,19 +212,15 @@ export default function GroupLobby() {
         }
 
         if (updatedRoom && updatedRoom.status !== currentRoom.status) {
-          console.log("Room status updated from polling:", updatedRoom.status);
           setCurrentRoom(updatedRoom);
-          
-          // Transition to swiping if room became active
           if (updatedRoom.status === "active" && sessionState === "waiting") {
-            console.log("Transitioning to swiping state");
             setSessionState("swiping");
           }
         }
       } catch (err) {
         console.error("Error polling room status:", err);
       }
-    }, 1000); // Poll every 1 second for faster updates
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [currentRoom, sessionState]);
@@ -238,29 +231,22 @@ export default function GroupLobby() {
 
     const interval = setInterval(async () => {
       try {
-        const { getRoomMatches, checkConsensus, createMatch } = await import("../lib/roomService");
-        
         // Check for existing matches
         const matches = await getRoomMatches(currentRoom.id);
         if (matches.length > 0) {
-          const matchedRestaurant = restaurants.find(
-            r => r.id === matches[0].restaurant_id
-          );
-          if (matchedRestaurant) {
-            console.log("Match found from polling:", matchedRestaurant.name);
-            setMatchedRestaurant(matchedRestaurant);
+          const matched = restaurants.find(r => r.id === matches[0].restaurant_id);
+          if (matched) {
+            setMatchedRestaurant(matched);
             setSessionState("matched");
             return;
           }
         }
 
-        // Check for consensus on current restaurant
-        const currentRestaurant = restaurants[currentIndex];
+        // Check for consensus on current restaurant (use ref to avoid stale closure)
+        const currentRestaurant = restaurants[currentIndexRef.current];
         if (currentRestaurant) {
           const hasConsensus = await checkConsensus(currentRoom.id, currentRestaurant.id);
           if (hasConsensus) {
-            console.log("Consensus reached on:", currentRestaurant.name);
-            // Create match
             const { success } = await createMatch(currentRoom.id, currentRestaurant.id);
             if (success) {
               setMatchedRestaurant(currentRestaurant);
@@ -271,10 +257,10 @@ export default function GroupLobby() {
       } catch (err) {
         console.error("Error polling matches:", err);
       }
-    }, 1000); // Poll every 1 second for faster detection
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentRoom, sessionState, currentIndex]);
+  }, [currentRoom, sessionState]);
 
   // Start swiping (host only)
   const startSwiping = async () => {
@@ -344,19 +330,17 @@ export default function GroupLobby() {
       console.error("Error recording swipe:", err);
     }
 
-    // Move to next restaurant (no random match logic)
-    // Matches will be determined by consensus logic in database
-    if (currentIndex < restaurants.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCurrentIndex(0);
-    }
+    setCurrentIndex(prev => prev < restaurants.length - 1 ? prev + 1 : 0);
   };
 
   // Leave session
-  const leaveSession = () => {
-    if (roomSubscription) {
-      unsubscribeFromRoom(roomSubscription);
+  const leaveSession = async () => {
+    if (roomSubscriptionRef.current) {
+      unsubscribeFromRoom(roomSubscriptionRef.current);
+      roomSubscriptionRef.current = null;
+    }
+    if (currentRoom && user) {
+      await leaveRoom(currentRoom.id, user.id);
     }
     setSessionState("idle");
     setRoomCode("");
@@ -547,26 +531,28 @@ export default function GroupLobby() {
             </div>
           </motion.div>
 
-          {/* Start Button */}
-          <motion.button
-            onClick={startSwiping}
-            disabled={participants.length < 2}
-            className="relative w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-4 overflow-hidden group disabled:opacity-50"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            <span className="relative flex items-center justify-center gap-2">
-              <span>Start Swiping</span>
-            </span>
-          </motion.button>
+          {/* Start Button — host only */}
+          {currentRoom?.host_id === user?.id && (
+            <motion.button
+              onClick={startSwiping}
+              disabled={participants.length < 2 || isLoading}
+              className="relative w-full py-4 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl mb-4 overflow-hidden group disabled:opacity-50"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              <span className="relative flex items-center justify-center gap-2">
+                <span>{isLoading ? "Starting..." : "Start Swiping"}</span>
+              </span>
+            </motion.button>
+          )}
 
           {/* Leave Button */}
           <motion.button
-            onClick={leaveSession}
+            onClick={() => leaveSession().catch(console.error)}
             className="w-full py-3 bg-[#111] border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] font-semibold rounded-2xl hover:bg-[rgba(255,255,255,0.05)] transition-all"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -607,7 +593,7 @@ export default function GroupLobby() {
             <p className="text-white text-sm font-semibold">{participants.length} swiping</p>
           </div>
           <motion.button
-            onClick={leaveSession}
+            onClick={() => leaveSession().catch(console.error)}
             className="px-4 py-2 bg-[#111] border border-[rgba(255,255,255,0.06)] text-[#a1a1aa] text-sm rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-all"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
