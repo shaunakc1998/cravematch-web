@@ -8,10 +8,10 @@ import { SwipeData } from "../lib/algorithm";
 import { createClient } from "../lib/supabase";
 
 interface SwipeDeckProps {
-  filteredRestaurants?: Restaurant[]; // if provided, use instead of all restaurants
-  sessionId?: string; // if in group mode, record swipes to Supabase
-  onComplete?: (swipes: SwipeData[]) => void; // callback when all swiped
-  maxSwipes?: number; // default 25
+  filteredRestaurants?: Restaurant[];
+  sessionId?: string;
+  onComplete?: (swipes: SwipeData[]) => void;
+  maxSwipes?: number;
 }
 
 export default function SwipeDeck({
@@ -59,7 +59,6 @@ export default function SwipeDeck({
     const updatedSwipes = [...localSwipes, swipeData];
     setLocalSwipes(updatedSwipes);
 
-    // Record to Supabase in group mode
     if (sessionId) {
       try {
         const supabase = createClient();
@@ -103,7 +102,7 @@ export default function SwipeDeck({
 
   if (currentIndex >= restaurantPool.length) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-8">
+      <div className="h-full flex flex-col items-center justify-center p-8 bg-black">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -111,22 +110,25 @@ export default function SwipeDeck({
           className="text-center max-w-xs"
         >
           <motion.div
-            className="text-6xl mb-6 inline-block"
+            className="w-20 h-20 rounded-3xl bg-[#111] border border-[#48484a] flex items-center justify-center mx-auto mb-6"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            🎉
+            <svg className="w-10 h-10 text-[#FF2D55]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2">All caught up!</h2>
-          <p className="text-[#6b7280] mb-8 text-sm leading-relaxed">
-            You&apos;ve seen all restaurants. Check back later for more!
+          <h2 className="text-2xl font-black text-white tracking-tight mb-2">All caught up!</h2>
+          <p className="text-[#636366] mb-8 text-sm leading-relaxed">
+            You&apos;ve seen all restaurants. Check your matches or start over.
           </p>
           <motion.button
             onClick={() => {
               setCurrentIndex(0);
               setLocalSwipes([]);
             }}
-            className="px-8 py-3.5 bg-gradient-to-r from-[#f43f5e] to-[#e11d48] text-white font-semibold rounded-2xl shadow-lg shadow-rose-500/25 active:scale-95 transition-transform"
+            className="px-8 py-3.5 bg-[#FF2D55] text-white font-bold rounded-2xl active:scale-95 transition-transform"
+            style={{ boxShadow: "0 8px 24px rgba(255,45,85,0.35)" }}
             whileTap={{ scale: 0.95 }}
           >
             Start Over
@@ -136,21 +138,17 @@ export default function SwipeDeck({
     );
   }
 
-  return (
-    <div className="h-full flex flex-col select-none">
-      {/* Counter */}
-      <div className="flex-shrink-0 flex items-center justify-center py-2">
-        <span className="text-[#4b5563] text-xs font-medium tabular-nums">
-          {currentIndex + 1} <span className="text-[#2d2d2d]">/</span> {restaurantPool.length}
-        </span>
-      </div>
+  const totalDots = Math.min(restaurantPool.length, 7);
+  const dotStartIdx = Math.max(0, Math.min(currentIndex - 3, restaurantPool.length - totalDots));
 
-      {/* Card Stack */}
-      <div className="flex-1 relative mx-4 min-h-0">
+  return (
+    <div className="h-full flex flex-col select-none bg-black">
+      {/* Card Stack — fills available space */}
+      <div className="flex-1 relative min-h-0">
         {/* Next card */}
         {nextRestaurant && (
           <motion.div
-            className="absolute inset-0 rounded-3xl overflow-hidden"
+            className="absolute inset-0 overflow-hidden"
             style={{ scale: nextCardScale, opacity: nextCardOpacity }}
           >
             <CardContent restaurant={nextRestaurant} />
@@ -160,7 +158,7 @@ export default function SwipeDeck({
         {/* Current card */}
         {currentRestaurant && (
           <motion.div
-            className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none rounded-3xl overflow-hidden shadow-2xl"
+            className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none overflow-hidden shadow-2xl"
             style={{ x, rotate, scale: cardScale }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
@@ -176,32 +174,57 @@ export default function SwipeDeck({
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex-shrink-0 flex items-center justify-center gap-5 py-5 px-8">
-        {/* Pass */}
-        <motion.button
-          onClick={() => handleSwipe("left")}
-          className="w-[60px] h-[60px] rounded-full border-2 border-white/10 bg-[#0d0d0d] flex items-center justify-center shadow-lg touch-manipulation"
-          whileTap={{ scale: 0.88 }}
-          transition={{ type: "spring", stiffness: 400 }}
-        >
-          <svg className="w-6 h-6 text-[#6b7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </motion.button>
+      {/* Dot progress + buttons */}
+      <div className="flex-shrink-0 px-6 pt-3 pb-4">
+        {/* Dots */}
+        <div className="flex items-center justify-center gap-1.5 mb-4">
+          {Array.from({ length: totalDots }).map((_, i) => {
+            const realIdx = dotStartIdx + i;
+            const isActive = realIdx === currentIndex;
+            return (
+              <motion.div
+                key={realIdx}
+                animate={{
+                  width: isActive ? 20 : 6,
+                  backgroundColor: isActive ? "#FF2D55" : "#48484a",
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="h-1.5 rounded-full"
+              />
+            );
+          })}
+        </div>
 
-        {/* Like */}
-        <motion.button
-          onClick={() => handleSwipe("right")}
-          className="w-[76px] h-[76px] rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-xl touch-manipulation relative"
-          whileTap={{ scale: 0.88 }}
-          transition={{ type: "spring", stiffness: 400 }}
-          style={{ boxShadow: "0 8px 30px rgba(244,63,94,0.4)" }}
-        >
-          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-          </svg>
-        </motion.button>
+        {/* Action buttons */}
+        <div className="flex items-center justify-center gap-6">
+          {/* Pass */}
+          <motion.button
+            onClick={() => handleSwipe("left")}
+            className="w-14 h-14 rounded-full border border-[#333] bg-[#111] flex items-center justify-center touch-manipulation"
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <svg className="w-6 h-6 text-[#636366]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </motion.button>
+
+          {/* Like */}
+          <motion.button
+            onClick={() => handleSwipe("right")}
+            className="w-16 h-16 rounded-full flex items-center justify-center touch-manipulation"
+            style={{
+              background: "linear-gradient(135deg, #FF2D55 0%, #FF6B6B 100%)",
+              boxShadow: "0 8px 30px rgba(255,45,85,0.45)",
+            }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+          </motion.button>
+        </div>
       </div>
     </div>
   );
@@ -217,7 +240,7 @@ function CardContent({
   nopeOpacity?: ReturnType<typeof useTransform<number, number>>;
 }) {
   return (
-    <div className="relative w-full h-full bg-[#0d0d0d]">
+    <div className="relative w-full h-full bg-[#111]">
       <img
         src={restaurant.image}
         alt={restaurant.name}
@@ -225,61 +248,69 @@ function CardContent({
         draggable={false}
       />
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+      {/* Deep gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-      {/* Swipe indicators */}
+      {/* LIKE stamp */}
       {likeOpacity && (
         <motion.div
           style={{ opacity: likeOpacity }}
-          className="absolute top-8 left-5 px-4 py-2 rounded-xl border-[3px] border-[#10b981] rotate-[-18deg]"
+          className="absolute top-8 left-5 rotate-[-18deg]"
         >
-          <span className="text-[#10b981] text-2xl font-black tracking-widest">YUM</span>
-        </motion.div>
-      )}
-      {nopeOpacity && (
-        <motion.div
-          style={{ opacity: nopeOpacity }}
-          className="absolute top-8 right-5 px-4 py-2 rounded-xl border-[3px] border-[#f43f5e] rotate-[18deg]"
-        >
-          <span className="text-[#f43f5e] text-2xl font-black tracking-widest">NOPE</span>
+          <div className="px-3 py-1.5 rounded-xl border-[3px] border-[#30D158]">
+            <span className="text-[#30D158] text-xl font-black tracking-widest">LIKE</span>
+          </div>
         </motion.div>
       )}
 
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5">
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {restaurant.tags.slice(0, 3).map((tag) => (
+      {/* NOPE stamp */}
+      {nopeOpacity && (
+        <motion.div
+          style={{ opacity: nopeOpacity }}
+          className="absolute top-8 right-5 rotate-[18deg]"
+        >
+          <div className="px-3 py-1.5 rounded-xl border-[3px] border-[#FF2D55]">
+            <span className="text-[#FF2D55] text-xl font-black tracking-widest">NOPE</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Bottom info panel */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/70 to-transparent pt-20">
+        {/* Vibe tag */}
+        {restaurant.vibes?.[0] && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF2D55] mb-1 block">
+            {restaurant.vibes[0]}
+          </span>
+        )}
+
+        {/* Name */}
+        <h2 className="text-[26px] font-black text-white leading-tight tracking-tight mb-2">
+          {restaurant.name}
+        </h2>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 text-sm text-white/80 mb-3">
+          <span className="flex items-center gap-1">
+            <span className="text-yellow-400">★</span>
+            <span className="font-bold text-white">{restaurant.rating}</span>
+          </span>
+          <span className="text-[#48484a]">·</span>
+          <span>{restaurant.price}</span>
+          <span className="text-[#48484a]">·</span>
+          <span>{restaurant.distance}</span>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {restaurant.tags.slice(0, 3).map(tag => (
             <span
               key={tag}
-              className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-xs font-medium border border-white/10"
+              className="px-2.5 py-1 rounded-full bg-white/10 text-white/90 text-[11px] font-semibold backdrop-blur-sm border border-white/10"
             >
               {tag}
             </span>
           ))}
-        </div>
-
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-2 leading-none">
-          {restaurant.name}
-        </h2>
-
-        <div className="flex items-center gap-3 text-sm text-white/70">
-          <span className="flex items-center gap-1">
-            <span className="text-amber-400">★</span>
-            <span className="text-white font-semibold">{restaurant.rating}</span>
-          </span>
-          <span className="w-0.5 h-0.5 rounded-full bg-white/30" />
-          <span>{restaurant.cuisine}</span>
-          <span className="w-0.5 h-0.5 rounded-full bg-white/30" />
-          <span className="font-medium text-white/90">{restaurant.price}</span>
-          <span className="w-0.5 h-0.5 rounded-full bg-white/30" />
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {restaurant.distance}
-          </span>
         </div>
       </div>
     </div>

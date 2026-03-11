@@ -23,11 +23,11 @@ const tabs: { id: TabType; label: string; icon: (active: boolean) => React.React
     id: "matches",
     label: "Matches",
     icon: (active) => active ? (
-      <svg className="w-[22px] h-[22px]" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-[24px] h-[24px]" fill="currentColor" viewBox="0 0 24 24">
         <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
       </svg>
     ) : (
-      <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <svg className="w-[24px] h-[24px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
       </svg>
     ),
@@ -53,59 +53,60 @@ export default function BottomNavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="flex-shrink-0 bg-black border-t border-[#222]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="bg-[#040404]/90 backdrop-blur-2xl border-t border-white/[0.07]">
-        <div className="flex items-center justify-around px-4 py-2 max-w-lg mx-auto">
-          {tabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            const hasNotif = tab.id === "matches" && matches.length > 0;
+      <div className="flex items-center justify-around px-2 py-1">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          const isMatches = tab.id === "matches";
+          const hasNotif = isMatches && matches.length > 0;
 
-            return (
-              <motion.button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="relative flex flex-col items-center justify-center gap-1 py-2 px-5 rounded-2xl touch-manipulation min-w-[70px]"
-                whileTap={{ scale: 0.9 }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-active"
-                    className="absolute inset-0 rounded-2xl bg-[#f43f5e]/10"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                  />
-                )}
+          return (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex flex-col items-center justify-center touch-manipulation ${
+                isMatches ? "py-2 px-6" : "py-2 px-5"
+              }`}
+              style={{ minHeight: "60px" }}
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            >
+              <div className="relative">
+                <motion.div
+                  className={isActive ? "text-[#FF2D55]" : "text-[#636366]"}
+                  animate={{ scale: isActive ? 1.05 : 1 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  {tab.icon(isActive)}
+                </motion.div>
 
-                <div className="relative">
+                {hasNotif && (
                   <motion.div
-                    className={isActive ? "text-[#f43f5e]" : "text-[#4b5563]"}
-                    animate={{ y: isActive ? -1 : 0 }}
-                    transition={{ type: "spring", stiffness: 400 }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1.5 min-w-[16px] h-4 rounded-full bg-[#FF2D55] flex items-center justify-center border-2 border-black px-0.5"
                   >
-                    {tab.icon(isActive)}
+                    <span className="text-white text-[8px] font-black leading-none">
+                      {matches.length > 9 ? "9+" : matches.length}
+                    </span>
                   </motion.div>
+                )}
+              </div>
 
-                  {hasNotif && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#f43f5e] flex items-center justify-center border-2 border-[#040404]"
-                    >
-                      <span className="text-white text-[9px] font-bold leading-none">
-                        {matches.length > 9 ? "9+" : matches.length}
-                      </span>
-                    </motion.div>
-                  )}
-                </div>
-
-                <span className={`text-[10px] font-semibold ${isActive ? "text-[#f43f5e]" : "text-[#4b5563]"}`}>
+              {isActive && (
+                <motion.span
+                  initial={{ opacity: 0, y: 2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-[10px] font-bold text-[#FF2D55] mt-0.5 tracking-tight"
+                >
                   {tab.label}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
+                </motion.span>
+              )}
+            </motion.button>
+          );
+        })}
       </div>
     </nav>
   );

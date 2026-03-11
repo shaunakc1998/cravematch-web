@@ -22,24 +22,24 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center bg-[#040404]">
+      <div className="h-full flex items-center justify-center bg-black">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-5"
+          className="flex flex-col items-center gap-6"
         >
           <motion.div
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-2xl"
-            animate={{ boxShadow: ["0 0 20px rgba(244,63,94,0.3)", "0 0 50px rgba(244,63,94,0.6)", "0 0 20px rgba(244,63,94,0.3)"] }}
+            className="w-16 h-16 rounded-2xl bg-[#FF2D55] flex items-center justify-center"
+            animate={{ boxShadow: ["0 0 20px rgba(255,45,85,0.3)", "0 0 50px rgba(255,45,85,0.6)", "0 0 20px rgba(255,45,85,0.3)"] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <span className="text-3xl">🍽️</span>
+            <span className="text-white text-2xl font-black tracking-tight">CM</span>
           </motion.div>
           <div className="flex gap-1.5">
             {[0, 1, 2].map(i => (
               <motion.div
                 key={i}
-                className="w-1.5 h-1.5 rounded-full bg-[#f43f5e]"
+                className="w-1.5 h-1.5 rounded-full bg-[#FF2D55]"
                 animate={{ opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.2 }}
               />
@@ -56,46 +56,34 @@ function AppContent() {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <div className="h-full flex flex-col bg-[#040404]" style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom))" }}>
-      {/* Subtle ambient glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(244,63,94,0.08) 0%, transparent 70%)" }} />
-      </div>
-
+    <div className="h-full flex flex-col bg-black">
       {/* Header */}
       <header
-        className="relative z-10 flex-shrink-0 flex items-center justify-between px-5"
-        style={{ paddingTop: "calc(env(safe-area-inset-top) + 14px)", paddingBottom: "14px" }}
+        className="relative z-10 flex-shrink-0 flex items-center justify-between px-5 border-b border-[#1a1a1a]"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)", paddingBottom: "12px" }}
       >
+        {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-lg shadow-rose-500/20">
-              <span className="text-base">🍽️</span>
-            </div>
+          <div className="w-8 h-8 rounded-lg bg-[#FF2D55] flex items-center justify-center">
+            <span className="text-white text-xs font-black tracking-tight">CM</span>
           </div>
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-white">Crave</span>
-            <span className="text-[#f43f5e]">Match</span>
-          </span>
+          <span className="text-white text-lg font-black tracking-tight">CraveMatch</span>
         </div>
 
+        {/* Avatar / sign out */}
         <button
           onClick={signOut}
-          className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-2xl border border-white/[0.07] bg-white/[0.03] active:scale-95 transition-transform touch-manipulation"
+          className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-[#48484a] flex items-center justify-center active:scale-95 transition-transform touch-manipulation"
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#f43f5e] to-[#e11d48] flex items-center justify-center shadow-md shadow-rose-500/20">
-            <span className="text-white text-xs font-bold">{userInitial}</span>
-          </div>
-          <span className="text-[#4b5563] text-xs font-medium">Out</span>
+          <span className="text-white text-xs font-bold">{userInitial}</span>
         </button>
       </header>
 
-      {/* Divider */}
-      <div className="flex-shrink-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent mx-5" />
-
       {/* Tab content */}
-      <main className="flex-1 min-h-0 overflow-hidden">
+      <main
+        className="flex-1 min-h-0 overflow-hidden"
+        style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom))" }}
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
@@ -103,7 +91,7 @@ function AppContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.12 }}
           >
             {activeTab === "discover" && <SwipeDeck />}
             {activeTab === "matches" && <MatchesList />}
